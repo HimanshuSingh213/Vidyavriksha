@@ -16,9 +16,9 @@ export default async function dbConnect() {
         return cached.conn;
     }
 
-    if (cached.promise) {
+    if (!cached.promise) {
         cached.promise = mongoose.connect(process.env.MongoDB_URI, { bufferCommands: false })
-            .them((mongoose) => mongoose)
+            .then((mongoose) => mongoose)
     }
     
     cached.conn = await cached.promise;

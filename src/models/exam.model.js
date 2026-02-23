@@ -1,8 +1,9 @@
 import mongoose, { Schema } from 'mongoose';
 
 const examSchema = new Schema({
-    userEmail: {
-        type: String,
+    userId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "userInfo",
         required: true,
         index: true
     },

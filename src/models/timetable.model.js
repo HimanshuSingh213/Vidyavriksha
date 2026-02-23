@@ -1,8 +1,9 @@
 import mongoose from 'mongoose';
 
 const timetableSchema = new mongoose.Schema({
-    userEmail: {
-        type: String,
+    userId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "UserInfo",
         required: true,
         index: true
     },
@@ -11,28 +12,30 @@ const timetableSchema = new mongoose.Schema({
         ref: 'subject',
         required: true
     },
-    daysOfWeek: {
-        type: String,
-        enum: ["Monday", "Tuesday", "Wednesday", "Thrusday", "Friday", "Saturday", "Sunday"],
+    dayOfWeek: {
+        type: Number,
+        min: 0,
+        max: 6,
+        required: true,
+        index: true
+    },
+    startMinutes: {
+        type: Number,
         required: true
     },
-    startTime: { 
-        type: String, 
-        required: true 
+    endMinutes: {
+        type: Number,
+        required: true
     },
-    endTime: { 
-        type: String, 
-        required: true 
-    },
-    room: { 
-        type: String, 
-        default: 'TBA' 
+    room: {
+        type: String,
+        default: 'TBA'
     },
     teacher: {
-        type: String, 
+        type: String,
         default: 'TBA'
     }
 
 }, { timestamps: true });
 
-export const timetable = mongoose.model('timetable', timetableSchema)
+export const Timetable = mongoose.models.Timetable || mongoose.model("Timetable", timetableSchema);

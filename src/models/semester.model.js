@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 
 const semesterSchema = new mongoose.Schema({
-    userEmail: {
+    userId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "userInfo",
         index: true,

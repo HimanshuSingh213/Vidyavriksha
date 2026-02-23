@@ -22,9 +22,11 @@ const attendanceSchema = new mongoose.Schema({
     },
     slotId: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'TimetableSlot'
+        ref: 'timetable'
     }
 
 }, { timestamps: true });
+
+attendanceSchema.index({ userEmail: 1, subjectId: 1, date: 1, slotId: 1 }, { unique: true });
 
 export const attendance = mongoose.model('attendance', attendanceSchema)
