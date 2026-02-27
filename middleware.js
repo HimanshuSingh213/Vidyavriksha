@@ -17,4 +17,8 @@ export default middleware((req) => {
     if(isAuthRoute && isLoggedIn){
         return Response.redirect(new URL("/dashboard", req.nextUrl))
     }
-})
+});
+
+export const config = {
+    matcher: ["/dashboard/:path*", "/login"],
+};

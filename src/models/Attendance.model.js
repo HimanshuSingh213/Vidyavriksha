@@ -1,12 +1,13 @@
 import mongoose from 'mongoose';
 
 const attendanceSchema = new mongoose.Schema({
-    userEmail: {
-        type: String,
+    userId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "userInfo",
         required: true,
         index: true
     },
-    SubjectId: {
+    subjectId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'subject',
         required: true
@@ -27,6 +28,6 @@ const attendanceSchema = new mongoose.Schema({
 
 }, { timestamps: true });
 
-attendanceSchema.index({ userEmail: 1, subjectId: 1, date: 1, slotId: 1 }, { unique: true });
+attendanceSchema.index({ userId: 1, subjectId: 1, date: 1, slotId: 1 }, { unique: true });
 
-export const attendance = mongoose.model('attendance', attendanceSchema)
+export const attendance = mongoose.models.attendance || mongoose.model('attendance', attendanceSchema);

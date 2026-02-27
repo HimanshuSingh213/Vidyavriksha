@@ -71,7 +71,7 @@ function NavItem({ href, icon, label, action, active }) {
                 }`}
         >
             {icon}
-            <div className={`flex flex-col w-full gap-px justify-center items-start transition-colors duration-300 ${active ? "text-primary" : "text-secondary"
+            <div className={`flex flex-col w-full gap-px justify-center items-start transition-colors duration-300 ${active ? "text-primary" : "text-secondary hover:text-primary"
                 }`}>
                 {label}
                 {action && <span className="font-mono text-[10px] font-light">{action}</span>}
