@@ -1,8 +1,8 @@
 import { auth, signOut } from "../../../auth";
 import { GraduationCap, LayoutDashboard, CalendarDays, FolderArchive, TrendingUp } from "lucide-react";
 import SidebarNav from "@/components/dashboard/SideBarNav";
-import DashboardHeader from "@/components/dashboard/DashboardHeader";
-import Image from "next/image";
+import DashboardUIWrapper from "@/components/dashboard/DashboardUIWrapper";
+import { UserProvider } from "./UserContext";
 
 export default async function DashboardLayout({ children }) {
     const session = await auth();
@@ -22,7 +22,7 @@ export default async function DashboardLayout({ children }) {
 
     return (
         <div className="h-screen bg-obsidian flex font-sans text-primary">
-            {/* THE SIDEBAR */}
+            {/* sidebar */}
             <aside className="w-64 border-r border-white/8 bg-white/1 hidden md:flex flex-col">
 
                 {/* Logo Area */}
@@ -33,7 +33,7 @@ export default async function DashboardLayout({ children }) {
                     <span className="font-semibold tracking-wide">Vidyavriksha</span>
                 </div>
 
-                {/* Client Side Logic for Nav & Bottom Profile */}
+                {/* Nav & Bottom Profile */}
                 <SidebarNav
                     navLinks={navLinks}
                     user={session?.user}
@@ -42,38 +42,13 @@ export default async function DashboardLayout({ children }) {
             </aside>
 
             {/* THE MAIN CONTENT AREA */}
-            <main className="flex-1 overflow-y-auto relative ">
-                {/* HEADER */}
-                <header className="flex justify-between items-center px-6 py-3 md:px-10 mt-1 font-sans border-b border-b-secondary/15">
+            <main className="flex-1 overflow-y-auto relative">
 
-                    <DashboardHeader userName={session?.user?.name} />
-
-                    <div className="flex flex-row items-center gap-2">
-                        <div className="max-w-60">
-                            <p className="text-center">{session?.user?.name}</p>
-                            <div className="flex flex-row justify-center items-center gap-1 text-xs text-success max-w-40 truncate line-clamp-1">
-                                <p className="text-[10px] max-w-2/3 truncate">Btech CSE-DS</p>
-                                <span className="text-[10px]">•</span>
-                                <p className="text-[10px]">Sem 2</p>
-                            </div>
-                        </div>
-                        <div>
-                            {/* Display Google Profile Picture */}
-                            {session?.user?.image && (
-                                <Image
-                                    src={session?.user.image}
-                                    alt="Profile"
-                                    width={32}
-                                    height={32}
-                                    className="rounded-full border border-white/8"
-                                />
-                            )}
-                        </div>
-
-                    </div>
-
-                </header>
-                {children}
+                <UserProvider session={session}>
+                    <DashboardUIWrapper session={session}>
+                        {children}
+                    </DashboardUIWrapper>
+                </UserProvider>
             </main>
         </div>
     );
