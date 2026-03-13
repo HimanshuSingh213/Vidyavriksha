@@ -22,6 +22,6 @@ const semesterSchema = new mongoose.Schema({
     }
 }, { timestamps: true });
 
-semesterSchema.index({ userEmail: 1, semester: 1 }, { unique: true });
+semesterSchema.index({ userId: 1, semester: 1 }, { unique: true });
 
 export const Semester = mongoose.models.Semester || mongoose.model('Semester', semesterSchema);

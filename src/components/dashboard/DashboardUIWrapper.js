@@ -2,7 +2,7 @@
 import { usePathname } from "next/navigation";
 import Image from "next/image";
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
-import { useUser } from "@/app/dashboard/UserContext";
+import { useUser } from "@/app/Context/UserContext";
 
 export default function DashboardUIWrapper({ session, children }) {
     const pathname = usePathname();

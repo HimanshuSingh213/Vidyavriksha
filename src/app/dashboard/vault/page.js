@@ -1,8 +1,9 @@
 import dbConnect from '@/lib/db'
 import { Semester } from '@/models/semester.model';
 import React from 'react'
-import { auth } from '../../../../auth';
+import { auth } from '@/auth';
 import { redirect } from 'next/navigation';
+import { userInfo } from '@/models/user.model';
 
 async function VaultPage() {
   const session = await auth();
@@ -12,6 +13,7 @@ async function VaultPage() {
 
   // Calculating all Historical SemesterWise Data
   await dbConnect();
+  const userData = await userInfo.findById(userId);
   const TotalSemesters = Semester.find({
     userId,
   }).lean()
@@ -22,7 +24,7 @@ async function VaultPage() {
       {/* Left */}
         <div className='left flex flex-col justify-center items-start'>
           <h4 className='text-sm text-primary font-serif font-semibold'>Academic Record</h4>
-          <p className='text-xs text-secondary '>Btech CSE-DS</p>
+          <p className='text-xs text-secondary '>{userData?.program || "N/A"}</p>
         </div>
         {/* Right */}
         <div>

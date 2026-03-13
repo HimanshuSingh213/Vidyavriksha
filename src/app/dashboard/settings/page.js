@@ -1,6 +1,6 @@
 import SettingHeader from '@/components/settings/SettingHeader'
 import React from 'react'
-import { auth } from '../../../../auth';
+import { auth } from '@/auth';
 import SettingOptions from '@/components/settings/SettingOptions';
 
 async function settingPage() {
@@ -8,10 +8,10 @@ async function settingPage() {
   return (
     <div>
       {/* Header */}
-      <SettingHeader session={session}/>
+      <SettingHeader session={session} />
 
       {/* Setting Options */}
-      <SettingOptions session={session}/>
+      <SettingOptions session={session} />
     </div>
   )
 }

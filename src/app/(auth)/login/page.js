@@ -7,10 +7,10 @@ export default function LoginPage() {
     };
 
     return (
-        // 4. The "Pure Tech" Background: Deep obsidian to reduce eye strain
+
         <div className="min-h-screen flex items-center justify-center bg-obsidian">
 
-            {/* 5. The Glassmorphism Card: Frosted glass effect with a razor-thin border */}
+            {/* The Glassmorphism Card: Frosted glass effect with a razor-thin border */}
             <div className="w-full max-w-md p-8 rounded-2xl bg-white/2 backdrop-blur-xl border border-white/8 shadow-2xl relative overflow-hidden">
 
                 {/* A subtle blue ambient glow behind the text to make it look premium */}
@@ -25,7 +25,7 @@ export default function LoginPage() {
                     </p>
                 </div>
 
-                {/* 6. The Login Button */}
+                {/* The Login Button */}
                 <button
                     onClick={handleGoogleLogin}
                     className="w-full flex items-center justify-center gap-3 py-3 px-4 bg-white/5 hover:bg-white/10 text-primary text-sm font-medium rounded-lg border border-white/8 transition-all duration-200"

@@ -1,5 +1,5 @@
 import { BookOpen, Clock } from "lucide-react";
-import { auth } from "../../../auth";
+import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import SgpaChart from "@/components/dashboard/SgpaChart";
 import LectureItem from "@/components/dashboard/LectureItem";

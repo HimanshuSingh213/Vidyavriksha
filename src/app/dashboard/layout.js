@@ -1,11 +1,13 @@
-import { auth, signOut } from "../../../auth";
+import { auth, signOut } from "@/auth";
 import { GraduationCap, LayoutDashboard, CalendarDays, FolderArchive, TrendingUp } from "lucide-react";
 import SidebarNav from "@/components/dashboard/SideBarNav";
 import DashboardUIWrapper from "@/components/dashboard/DashboardUIWrapper";
-import { UserProvider } from "./UserContext";
+import { UserProvider } from "../Context/UserContext";
+import { getUserSettings } from "@/actions/userSettings";
 
 export default async function DashboardLayout({ children }) {
     const session = await auth();
+    const userSettings = await getUserSettings();
 
     // Server Action for Sign Out
     async function handleSignOut() {
@@ -44,11 +46,12 @@ export default async function DashboardLayout({ children }) {
             {/* THE MAIN CONTENT AREA */}
             <main className="flex-1 overflow-y-auto relative">
 
-                <UserProvider session={session}>
+                <UserProvider session={session} initialData={userSettings}>
                     <DashboardUIWrapper session={session}>
                         {children}
                     </DashboardUIWrapper>
                 </UserProvider>
+
             </main>
         </div>
     );

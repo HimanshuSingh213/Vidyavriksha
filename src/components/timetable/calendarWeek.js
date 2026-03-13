@@ -1,6 +1,6 @@
 import { Space_Grotesk } from "next/font/google";
 import React from "react";
-import { auth } from "../../../auth";
+import { auth } from "@/auth";
 import { redirect } from 'next/navigation';
 import dbConnect from '@/lib/db';
 import { Timetable } from "@/models/timetable.model";

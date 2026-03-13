@@ -1,7 +1,7 @@
 "use client";
 import Image from 'next/image';
 import React from 'react';
-import { useUser } from '@/app/dashboard/UserContext';
+import { useUser } from '@/app/Context/UserContext';
 
 function SettingHeader({ session }) {
     const { displayName } = useUser();

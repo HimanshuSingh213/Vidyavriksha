@@ -1,6 +1,6 @@
 "use server";
 
-import { auth } from "../../auth";
+import { auth } from "@/auth";
 import dbConnect from "@/lib/db.js";
 import { attendance } from "@/models/Attendance.model";
 import { revalidatePath } from "next/cache";

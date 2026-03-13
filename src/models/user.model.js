@@ -31,6 +31,10 @@ const userSchema = new mongoose.Schema({
         type: Number,
         default: 0.00
     },
+    program: {
+        type: String,
+        default: "CSE"
+    }
 
 
 }, { timestamps: true, strict: false });
