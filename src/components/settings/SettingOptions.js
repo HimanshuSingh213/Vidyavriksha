@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { useUser } from '@/app/Context/UserContext';
 import { updateUserSettings } from '@/actions/userSettings';
 import SemMenu from './SemMenu';
+import SemData from './SemData';
 
 export default function SettingOptions({ session }) {
     const [active, setActive] = useState(1);
@@ -72,7 +73,7 @@ export default function SettingOptions({ session }) {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, ease: "easeOut", delay: 0.1 }}
 
-                className='mx-auto max-w-5xl'
+                className='mx-auto max-w-4xl'
             >
                 <div className='py-4'>
                     <ul className='p-4 border-b border-b-secondary/20 flex flex-row gap-8 items-center justify-start'>
@@ -210,9 +211,9 @@ export default function SettingOptions({ session }) {
                             <p className='text-[10px] text-secondary p-3 font-semibold'>SEMESTERS</p>
                             <SemMenu />
                         </div>
-                        {/* Sem Subjecct Data */}
-                        <div>
-
+                        {/* Sem Subject Data */}
+                        <div className='w-full'>
+                            <SemData/>
                         </div>
                     </div>
                 )}

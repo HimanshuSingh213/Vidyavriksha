@@ -30,6 +30,17 @@ const subjectSchema = new mongoose.Schema({
             type: Number,
             default: 0
         }
+    },
+    semester: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Semester",
+        required: true
+    },
+    userId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "userInfo",
+        required: true,
+        index: true
     }
 
 }, { timestamps: true });

@@ -7,6 +7,7 @@ import { LogOut, Settings } from "lucide-react";
 export default function SidebarNav({ navLinks, user, signOutAction }) {
     const pathname = usePathname();
 
+
     return (
         <>
             {/* Navigation Links */}
@@ -44,7 +45,7 @@ export default function SidebarNav({ navLinks, user, signOutAction }) {
                     <Link
                         title="Settings"
                         href="/dashboard/settings"
-                        className="w-1/2 h-8 py-2 flex items-center justify-center text-xs font-medium hover:bg-white/5 border border-white/8 rounded-lg transition-colors duration-300 ease-in-out text-secondary hover:text-primary"
+                        className={`w-1/2 h-8 py-2 flex items-center justify-center text-xs font-medium hover:bg-white/5 border border-white/8 rounded-lg transition-colors duration-300 ease-in-out  hover:text-primary ${pathname === "/dashboard/settings"? "bg-white/5 border border-white/8 text-primary": "text-secondary"}`}
                     >
                         {<Settings size={18} />}
                     </Link>

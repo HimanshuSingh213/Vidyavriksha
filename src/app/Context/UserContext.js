@@ -15,13 +15,17 @@ export function UserProvider({ children, session, initialData }) {
     setProgram(newProgram);
   };
 
+  const [selectedSem, setSelectedSem] = useState("");
+
   const value = {
     displayName,
     setDisplayName,
     program,
     setProgram,
     updateName,
-    updateProgram
+    updateProgram,
+    selectedSem,
+    setSelectedSem
   }
 
   return (
