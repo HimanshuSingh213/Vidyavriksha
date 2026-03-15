@@ -5,6 +5,7 @@ import { useUser } from '@/app/Context/UserContext';
 import { updateUserSettings } from '@/actions/userSettings';
 import SemMenu from './SemMenu';
 import SemData from './SemData';
+import AccountDelete from './AccountDelete';
 
 export default function SettingOptions({ session }) {
     const [active, setActive] = useState(1);
@@ -21,20 +22,20 @@ export default function SettingOptions({ session }) {
     }, [program]);
 
     const courses = [
-        { value: 'CSE', label: 'Computer Science & Engineering' },
-        { value: 'CSE (AI & ML)', label: 'CSE Artificial Intelligence & Machine Learning' },
-        { value: 'CSE (DS)', label: 'CSE Data Science' },
-        { value: 'CSE (CS)', label: 'CSE Cyber Security' },
-        { value: 'CSE (CC)', label: 'CSE Cloud Computing' },
-        { value: 'ME', label: 'Mechanical Engineering' },
-        { value: 'EE', label: 'Electrical Engineering' },
-        { value: 'CE', label: 'Civil Engineering' },
-        { value: 'CHE', label: 'Chemical Engineering' },
-        { value: 'AE', label: 'Aerospace Engineering' },
-        { value: 'BT', label: 'Biotechnology' },
-        { value: 'ECE', label: 'Electronics & Communication Engineering' },
-        { value: 'IT', label: 'Information Technology' },
-        { value: 'EP', label: 'Engineering Physics' },
+        { value: 'B.Tech CSE', label: 'B.Tech Computer Science & Engineering' },
+        { value: 'B.Tech CSE (AI & ML)', label: 'B.Tech CSE Artificial Intelligence & Machine Learning' },
+        { value: 'B.Tech CSE (DS)', label: 'B.Tech CSE Data Science' },
+        { value: 'B.Tech CSE (CS)', label: 'B.Tech CSE Cyber Security' },
+        { value: 'B.Tech CSE (CC)', label: 'B.Tech CSE Cloud Computing' },
+        { value: 'B.Tech ME', label: 'B.Tech Mechanical Engineering' },
+        { value: 'B.Tech EE', label: 'B.Tech Electrical Engineering' },
+        { value: 'B.Tech CE', label: 'B.Tech Civil Engineering' },
+        { value: 'B.Tech CHE', label: 'B.Tech Chemical Engineering' },
+        { value: 'B.Tech AE', label: 'B.Tech Aerospace Engineering' },
+        { value: 'B.Tech BT', label: 'B.Tech Biotechnology' },
+        { value: 'B.Tech ECE', label: 'B.Tech Electronics & Communication Engineering' },
+        { value: 'B.Tech IT', label: 'B.Tech Information Technology' },
+        { value: 'B.Tech EP', label: 'B.Tech Engineering Physics' },
         { value: 'BBA', label: 'Bachelor of Business Administration' },
         { value: 'MBA', label: 'Master of Business Administration' },
         { value: 'MCA', label: 'Master of Computer Applications' },
@@ -206,15 +207,21 @@ export default function SettingOptions({ session }) {
 
                 {active === 2 && (
                     <div className='flex md:flex-row gap-12 space-y-12 '>
-                    {/* Sem Selection */}
+                        {/* Sem Selection */}
                         <div className='min-w-56'>
                             <p className='text-[10px] text-secondary p-3 font-semibold'>SEMESTERS</p>
                             <SemMenu />
                         </div>
                         {/* Sem Subject Data */}
                         <div className='w-full'>
-                            <SemData/>
+                            <SemData />
                         </div>
+                    </div>
+                )}
+
+                {active === 3 && (
+                    <div>
+                        <AccountDelete />
                     </div>
                 )}
 

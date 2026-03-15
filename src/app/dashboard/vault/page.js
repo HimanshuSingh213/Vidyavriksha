@@ -3,7 +3,7 @@ import { Semester } from '@/models/semester.model';
 import React from 'react'
 import { auth } from '@/auth';
 import { redirect } from 'next/navigation';
-import { userInfo } from '@/models/user.model';
+import { User } from '@/models/user.model';
 
 async function VaultPage() {
   const session = await auth();
@@ -13,7 +13,7 @@ async function VaultPage() {
 
   // Calculating all Historical SemesterWise Data
   await dbConnect();
-  const userData = await userInfo.findById(userId);
+  const userData = await User.findById(userId);
   const TotalSemesters = Semester.find({
     userId,
   }).lean()

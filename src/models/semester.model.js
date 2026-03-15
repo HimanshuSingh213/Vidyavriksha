@@ -3,7 +3,7 @@ import mongoose from 'mongoose';
 const semesterSchema = new mongoose.Schema({
     userId: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "userInfo",
+        ref: "User",
         index: true,
         required: true
     },

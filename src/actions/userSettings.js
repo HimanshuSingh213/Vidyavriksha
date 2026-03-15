@@ -2,7 +2,7 @@
 
 import { auth } from "@/auth";
 import dbConnect from "@/lib/db";
-import { userInfo } from "@/models/user.model";
+import { User } from "@/models/user.model";
 import { revalidatePath } from "next/cache";
 
 export async function getUserSettings() {
@@ -10,7 +10,7 @@ export async function getUserSettings() {
     if (!session?.user?.id) return null;
 
     await dbConnect();
-    const user = await userInfo.findById(session.user.id).lean();
+    const user = await User.findById(session.user.id).lean();
     return JSON.parse(JSON.stringify(user));
 }
 
@@ -19,7 +19,7 @@ export async function updateUserSettings(data) {
     if (!session?.user?.id) throw new Error("Unauthorized");
 
     await dbConnect();
-    const updatedUser = await userInfo.findByIdAndUpdate(
+    const updatedUser = await User.findByIdAndUpdate(
         session.user.id,
         { $set: data },
         { new: true }

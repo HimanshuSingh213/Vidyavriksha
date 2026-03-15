@@ -38,7 +38,7 @@ const subjectSchema = new mongoose.Schema({
     },
     userId: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "userInfo",
+        ref: "User",
         required: true,
         index: true
     }

@@ -3,7 +3,7 @@ import mongoose from 'mongoose';
 const timetableSchema = new mongoose.Schema({
     userId: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "UserInfo",
+        ref: "User",
         required: true,
         index: true
     },

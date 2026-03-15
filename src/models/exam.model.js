@@ -3,7 +3,7 @@ import mongoose, { Schema } from 'mongoose';
 const examSchema = new Schema({
     userId: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "userInfo",
+        ref: "User",
         required: true,
         index: true
     },
