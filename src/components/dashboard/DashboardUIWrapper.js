@@ -24,11 +24,11 @@ export default function DashboardUIWrapper({ session, children }) {
                 <div className="flex flex-row items-center gap-2">
                     <div className="max-w-60">
                         <p className="text-center">{effectiveName}</p>
-                        <div className="flex flex-row justify-center items-center gap-1 text-xs text-success max-w-40 truncate line-clamp-1">
+                        {/* <div className="flex flex-row justify-center items-center gap-1 text-xs text-success max-w-40 truncate line-clamp-1">
                             <p className="text-[10px]">Btech CSE-DS</p>
                             <span className="text-[10px]">•</span>
                             <p className="text-[10px]">Sem 2</p>
-                        </div>
+                        </div> */}
                     </div>
                     {session?.user?.image && (
                         <Image

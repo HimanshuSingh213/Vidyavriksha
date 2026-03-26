@@ -15,19 +15,55 @@ export async function getUserSettings() {
 }
 
 export async function updateUserSettings(data) {
-    const session = await auth();
-    if (!session?.user?.id) throw new Error("Unauthorized");
+    try {
+        const session = await auth();
+        if (!session?.user?.id) throw new Error("Unauthorized");
 
-    await dbConnect();
-    const updatedUser = await User.findByIdAndUpdate(
-        session.user.id,
-        { $set: data },
-        { new: true }
-    );
+        await dbConnect();
 
-    revalidatePath("/dashboard/settings");
-    revalidatePath("/dashboard/vault");
-    
-    return JSON.parse(JSON.stringify(updatedUser));
+        const {
+            name,
+            program,
+            targetCGPA,
+            universityScale,
+            currentSem,
+            currentCGPA
+        } = data;
+
+        const updateFields = {};
+
+        if (name !== undefined) updateFields.name = name;
+        if (program !== undefined) updateFields.program = program;
+        if (targetCGPA !== undefined) updateFields.targetCGPA = targetCGPA;
+        if (universityScale !== undefined) updateFields.universityScale = universityScale;
+        if (currentSem !== undefined) updateFields.currentSem = currentSem;
+        if (currentCGPA !== undefined) updateFields.currentCGPA = currentCGPA;
+
+        const updatedUser = await User.findByIdAndUpdate(
+            session.user.id,
+            { $set: updateFields },
+            { new: true }
+        );
+
+        if (!updatedUser) {
+            throw new Error("User not found in the database.");
+        }
+
+        revalidatePath("/dashboard/settings");
+        revalidatePath("/dashboard/vault");
+
+        return {
+            success: true,
+            message: "Settings updated successfully"
+        };
+    } catch (err) {
+        console.error("Error updating user settings:", err);
+ 
+        return {
+            success: false,
+            message: err.message || "Failed to update settings"
+        };
+    }
+
 }
 

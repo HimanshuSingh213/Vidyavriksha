@@ -29,7 +29,11 @@ const userSchema = new mongoose.Schema({
     },
     currentCGPA: {
         type: Number,
-        default: 0.00
+        default: null
+    },
+    currentSem: {
+        type: Number,
+        default: 1
     },
     program: {
         type: String,

@@ -1,73 +1,47 @@
-import { BookOpen, Clock } from "lucide-react";
-import { auth } from "@/auth";
-import { redirect } from "next/navigation";
+"use client";
+
+import React, { useEffect, useState } from "react";
+import { BookOpen, Clock, Loader2 } from "lucide-react";
 import SgpaChart from "@/components/dashboard/SgpaChart";
 import LectureItem from "@/components/dashboard/LectureItem";
 import UpcomingExamItem from "@/components/dashboard/UpcomingExamItem";
-import dbConnect from "@/lib/db";
-import { Exam } from "@/models/exam.model";
-import { Timetable } from "@/models/timetable.model";
-import { attendance } from "@/models/Attendance.model";
-import { subject } from "@/models/subject.model";
+import { useUser } from "../Context/UserContext";
+import { getDashboardData } from "@/actions/DashboardPopulating";
 
-export default async function DashboardPage() {
-  // Fetching logged-in user's session securely on the server
-  const session = await auth();
+export default function DashboardPage() {
 
-  if (!session) {
-    redirect("/login");
+  const { targetCGPA, currentCGPA } = useUser();
+  const [upcomingExams, setUpcomingExams] = useState([]);
+  const [todaySchedule, setTodaySchedule] = useState([]);
+  const [startOfDayIso, setStartOfDayIso] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchDashboard = async () => {
+      try {
+        const data = await getDashboardData();
+        if (data) {
+          setUpcomingExams(data.upcomingExams);
+          setTodaySchedule(data.todaySchedule);
+          setStartOfDayIso(data.startOfDayIso);
+        }
+      } catch (error) {
+        console.error("Failed to fetch dashboard data:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchDashboard();
+  }, []);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-obsidian flex items-center justify-center">
+        <Loader2 className="animate-spin text-brand w-8 h-8" />
+      </div>
+    );
   }
-
-  const userId = session?.user?.id;
-
-  // Handling Exams 
-  await dbConnect();
-
-  const rawExams = await Exam.find({
-     date: { $gte: new Date() } // Only grab exams from today onwards
-  })
-  .populate('subjectId') // ensure subject details are available
-  .sort({ date: 1 }) // Sort by closest date first
-  .limit(8) // Only show the next 8 upcoming exams
-  .lean();
-
-  // Map to plain JSON-friendly values for the client component
-  const upcomingExams = rawExams.map((exam) => ({
-    id: exam._id.toString(),
-    subject: exam.subjectId?.name || "Unknown Subject",
-    code: exam.subjectId?.code || "N/A",
-    type: exam.title,
-    examDateString: exam.date.toISOString(),
-  }));
-
-  // Handling TimeTable
-  const today = new Date().getDay(); // calculating today's date to get correct schedule
-
-  // Get current date range (today)
-  const startOfDay = new Date();
-  startOfDay.setHours(0, 0, 0, 0);
-  const endOfDay = new Date();
-  endOfDay.setHours(23, 59, 59, 999);
-
-  const [rawSchedule, todayAttendance] = await Promise.all([
-    Timetable.find({ userId, dayOfWeek: today }).populate('subjectId').sort({ startMinutes: 1 }).lean(),
-    attendance.find({ 
-        userId, 
-        date: { $gte: startOfDay, $lte: endOfDay } 
-    }).lean()
-  ]);
-
-  // Map attendance status to slotId (which corresponds to the Timetable item _id)
-  const attendanceMap = new Map(
-    todayAttendance.map(a => [a.slotId?.toString(), a.status])
-  );
-
-  const todaySchedule = rawSchedule.map(lecture => ({
-    ...lecture,
-    subject: lecture.subjectId?.name || lecture.subject || "Unknown Subject",
-    code: lecture.subjectId?.code || lecture.code || "N/A",
-    initialStatus: attendanceMap.get(lecture._id.toString()) || ""
-  }));
 
   return (
     <div className="min-h-screen bg-obsidian text-primary p-6 md:p-10 font-sans">
@@ -82,16 +56,16 @@ export default async function DashboardPage() {
           <h2 className="text-secondary text-sm font-medium uppercase tracking-wider mb-2">Current Trajectory</h2>
           <div className="flex items-end gap-4">
             {/* Monospace font for data points */}
-            <span className="text-6xl font-mono font-bold tracking-tighter text-white">8.42</span>
+            <span className="text-6xl font-mono font-bold tracking-tighter text-white">{currentCGPA}</span>
             <span className="text-xl text-secondary mb-2 font-mono">CGPA</span>
           </div>
 
           <div className="mt-6 flex gap-4">
             <div className="px-3 py-1 bg-success/10 border border-success/20 rounded text-success text-xs font-mono">
-              Target: 9.00
+              Target: {targetCGPA}
             </div>
-            <div className="px-3 py-1 bg-warning/10 border border-warning/20 rounded text-warning text-xs font-mono">
-              Deficit: 0.58
+            <div className={`px-3 py-1 border rounded ${currentCGPA !== 0 && targetCGPA > currentCGPA?"text-warning bg-warning/10 border-warning/20": "text-success bg-success/10 border-success/20"} text-xs font-mono`}>
+               {currentCGPA !== 0 && targetCGPA > currentCGPA? (`Deficit: ${Number(targetCGPA-currentCGPA).toFixed(2)}`): (`Surplus: ${Number(currentCGPA-targetCGPA).toFixed(2)}`)}
             </div>
           </div>
         </div>
@@ -119,14 +93,14 @@ export default async function DashboardPage() {
                 <LectureItem
                   key={lecture._id.toString()}
                   slotId={lecture._id.toString()}
-                  subjectId={lecture.subjectId?._id?.toString() || lecture.subjectId?.toString()}
+                  subjectId={lecture.subjectId}
                   subject={lecture.subject}
                   code={lecture.code}
                   teacher={lecture.teacher}
                   startTime={lecture.startMinutes}
                   endTime={lecture.endMinutes}
                   initialStatus={lecture.initialStatus}
-                  currentDateIso={startOfDay.toISOString()}
+                  currentDateIso={startOfDayIso}
                 />
               ))
             )}
@@ -157,7 +131,6 @@ export default async function DashboardPage() {
           </div>
         </div>
       </div>
-
 
     </div>
   );

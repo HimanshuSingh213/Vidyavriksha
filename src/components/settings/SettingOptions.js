@@ -9,17 +9,34 @@ import AccountDelete from './AccountDelete';
 
 export default function SettingOptions({ session }) {
     const [active, setActive] = useState(1);
-    const { displayName, setDisplayName, program, setProgram } = useUser();
-    const [localName, setLocalName] = useState(displayName);
-    const [localProgram, setLocalProgram] = useState(program);
+    const {
+        displayName, setDisplayName,
+        program, setProgram,
+        targetCGPA, setTargetCGPA,
+        universityScale, setUniversityScale,
+        currentCGPA, setCurrentCGPA,
+        currentSem, setCurrentSem
+    } = useUser();
+
+    // Local state for form fields
+    const [localName, setLocalName] = useState(displayName || "");
+    const [localProgram, setLocalProgram] = useState(program || "CSE");
+    const [localTargetCGPA, setLocalTargetCGPA] = useState(targetCGPA || 9.0);
+    const [localUnivScale, setLocalUnivScale] = useState(universityScale || 10);
+    const [localCurrentSem, setLocalCurrentSem] = useState(currentSem || 1);
+    const [localCurrentCGPA, setLocalCurrentCGPA] = useState(currentCGPA || 0);
+
+    const [isManualCGPA, setIsManualCGPA] = useState(!!currentCGPA && currentCGPA > 0);
 
     useEffect(() => {
-        setLocalName(displayName);
-    }, [displayName]);
-
-    useEffect(() => {
-        setLocalProgram(program);
-    }, [program]);
+        setLocalName(displayName || "");
+        setLocalProgram(program || "CSE");
+        setLocalTargetCGPA(targetCGPA || 9.0);
+        setLocalUnivScale(universityScale || 10);
+        setLocalCurrentSem(currentSem || 1);
+        setLocalCurrentCGPA(currentCGPA || 0);
+        setIsManualCGPA(!!currentCGPA && currentCGPA > 0);
+    }, [displayName, program, targetCGPA, universityScale, currentCGPA, currentSem]);
 
     const courses = [
         { value: 'B.Tech CSE', label: 'B.Tech Computer Science & Engineering' },
@@ -59,11 +76,28 @@ export default function SettingOptions({ session }) {
 
     const handleSaveProgram = async () => {
         try {
-            await updateUserSettings({ program: localProgram });
-            setProgram(localProgram);
+            const finalCGPA = isManualCGPA ? Number(localCurrentCGPA) : null;
+            const res = await updateUserSettings({
+                program: localProgram,
+                targetCGPA: Number(localTargetCGPA),
+                universityScale: Number(localUnivScale),
+                currentSem: Number(localCurrentSem),
+                currentCGPA: finalCGPA
+            });
+
+            if (!res.success) {
+                alert(`Error: ${res.message}`);
+                return;
+            }
+            
+            if (setProgram) setProgram(localProgram);
+            if (setTargetCGPA) setTargetCGPA(Number(localTargetCGPA));
+            if (setUniversityScale) setUniversityScale(Number(localUnivScale));
+            if (setCurrentSem) setCurrentSem(Number(localCurrentSem));
+            if (setCurrentCGPA) setCurrentCGPA(finalCGPA);
             alert(`Academic details updated successfully!`);
         } catch (error) {
-            alert("Failed to update program.");
+            alert("Failed to update academic details.");
         }
     }
 
@@ -179,19 +213,99 @@ export default function SettingOptions({ session }) {
                             <div className='flex flex-col gap-1 justify-center items-start p-6 bg-obsidian/10'>
                                 <h1 className='text-primary text-lg font-medium'>Academic Identity</h1>
                                 <h3 className='text-secondary text-sm'>Your institutional program details.</h3>
-                                <div className='flex flex-col justify-center items-start mt-8'>
-                                    <p className='text-xs text-secondary'>Degree Program</p>
-                                    <select
-                                        value={localProgram}
-                                        onChange={(e) => setLocalProgram(e.target.value)}
-                                        className='max-w-xl w-[320px] text-sm px-3 py-1.5 h-8 mt-1 bg-primary/5 outline outline-primary/10 focus:outline-primary/25 transition duration-200 ease-in-out rounded-lg text-primary appearance-none cursor-pointer'
-                                    >
-                                        {courses.map((course) => (
-                                            <option key={course.label} value={course.value} className='bg-obsidian text-secondary'>
-                                                {course.label}
-                                            </option>
-                                        ))}
-                                    </select>
+
+                                <div className='grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 w-full max-w-2xl mt-8'>
+                                    {/* Degree Program */}
+                                    <div className='flex flex-col justify-center items-start'>
+                                        <p className='text-xs text-secondary'>Degree Program</p>
+                                        <select
+                                            value={localProgram}
+                                            onChange={(e) => setLocalProgram(e.target.value)}
+                                            className='max-w-xl w-[320px] text-sm px-3 py-1.5 h-8 mt-1 bg-primary/5 outline outline-primary/10 focus:outline-primary/25 transition duration-200 ease-in-out rounded-lg text-primary appearance-none cursor-pointer'
+                                        >
+                                            {courses.map((course) => (
+                                                <option key={course.label} value={course.value} className='bg-obsidian text-secondary'>
+                                                    {course.label}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+
+                                    {/* Current Semester */}
+                                    <div className='flex flex-col justify-center items-start'>
+                                        <p className='text-xs text-secondary'>Current Semester</p>
+                                        <input
+                                            value={localCurrentSem}
+                                            onChange={(e) => setLocalCurrentSem(e.target.value)}
+                                            type="number" min="1" max="10"
+                                            className='w-full text-sm px-3 py-2 h-8 mt-1 bg-primary/5 outline outline-primary/10 focus:outline-primary/25 transition duration-200 ease-in-out rounded-lg text-primary [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-inner-spin-button]:m-0 [appearance:textfield]'
+                                        />
+                                    </div>
+
+                                    {/* University Scale */}
+                                    <div className='flex flex-col justify-center items-start'>
+                                        <p className='text-xs text-secondary'>University Scale (e.g., 10.0)</p>
+                                        <input
+                                            value={localUnivScale}
+                                            onChange={(e) => setLocalUnivScale(e.target.value)}
+                                            type="number" step="0.1"
+                                            className='w-full text-sm px-3 py-2 h-8 mt-1 bg-primary/5 outline outline-primary/10 focus:outline-primary/25 transition duration-200 ease-in-out rounded-lg text-primary [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-inner-spin-button]:m-0 [appearance:textfield]'
+                                        />
+                                    </div>
+
+                                    {/* Target CGPA */}
+                                    <div className='flex flex-col justify-center items-start'>
+                                        <p className='text-xs text-secondary'>Target CGPA</p>
+                                        <input
+                                            value={localTargetCGPA}
+                                            onChange={(e) => setLocalTargetCGPA(e.target.value)}
+                                            type="number" step="0.01" max={localUnivScale}
+                                            className='w-full text-sm px-3 py-2 h-8 mt-1 bg-primary/5 outline outline-primary/10 focus:outline-primary/25 transition duration-200 ease-in-out rounded-lg text-primary [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-inner-spin-button]:m-0 [appearance:textfield]'
+                                        />
+                                    </div>
+
+                                    {/* CGPA Calculation Toggle */}
+                                    <div className='col-span-1 md:col-span-2 flex items-center mt-2'>
+                                        <label className='flex items-center cursor-pointer'>
+                                            <div className='relative'>
+                                                <input
+                                                    type="checkbox"
+                                                    className='sr-only'
+                                                    checked={!isManualCGPA}
+                                                    onChange={() => {
+                                                        const nextManualState = !isManualCGPA;
+                                                        setIsManualCGPA(nextManualState);
+                                                        if (!nextManualState) setLocalCurrentCGPA(0);
+                                                    }}
+                                                />
+                                                <div className={`block w-10 h-6 rounded-full transition-colors ${!isManualCGPA ? 'bg-primary' : 'bg-primary/20'}`}></div>
+                                                <div className={`absolute left-1 top-1 bg-obsidian w-4 h-4 rounded-full transition-transform ${!isManualCGPA ? 'translate-x-4' : ''}`}></div>
+                                            </div>
+                                            <div className='ml-3 text-sm text-secondary font-medium'>
+                                                Auto-calculate CGPA from past semesters
+                                            </div>
+                                        </label>
+                                    </div>
+
+                                    {/* Manual Current CGPA Input */}
+                                    <AnimatePresence>
+                                        {isManualCGPA && (
+                                            <motion.div
+                                                initial={{ opacity: 0, height: 0 }}
+                                                animate={{ opacity: 1, height: 'auto' }}
+                                                exit={{ opacity: 0, height: 0 }}
+                                                className='col-span-1 md:col-span-2 flex flex-col justify-center items-start overflow-hidden'
+                                            >
+                                                <p className='text-xs text-secondary'>Manual CGPA (Prior to current sem)</p>
+                                                <input
+                                                    value={localCurrentCGPA}
+                                                    onChange={(e) => setLocalCurrentCGPA(e.target.value)}
+                                                    type="number" step="0.01" max={localUnivScale}
+                                                    className='w-1/2 text-sm px-3 py-2 h-8 mt-1 bg-primary/5 outline outline-primary/10 focus:outline-primary/25 transition duration-200 ease-in-out rounded-lg text-primary [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-inner-spin-button]:m-0 [appearance:textfield]'
+                                                />
+                                            </motion.div>
+                                        )}
+                                    </AnimatePresence>
                                 </div>
                             </div>
                             <div className='bg-primary/5 px-4 py-3 flex flex-row justify-between items-center'>

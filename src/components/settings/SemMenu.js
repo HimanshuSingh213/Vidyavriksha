@@ -15,7 +15,7 @@ export default function SemMenu() {
     const alreadyAddedSems = semesters.map((sem) => sem.semester);
     const availableSems = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].filter((num) => !alreadyAddedSems.includes(num));
 
-    const { selectedSem, setSelectedSem } = useUser();
+    const { selectedSem, setSelectedSem, currentSem } = useUser();
     const [Sem, addSem] = useState(1);
     const [addSemLoading, setAddSemLoading] = useState(false);
 
@@ -50,7 +50,8 @@ export default function SemMenu() {
                 setSemesters(fetchedSemesters);
 
                 if (fetchedSemesters.length > 0 && selectedSem === "") {
-                    setSelectedSem(fetchedSemesters[0].id);
+                    const matchingSem = fetchedSemesters.find((sem) => sem.semester === currentSem);
+                    setSelectedSem(matchingSem ? matchingSem.id : fetchedSemesters[0].id);
                 }
 
                 const existingNumbers = fetchedSemesters.map((sem) => sem.semester);

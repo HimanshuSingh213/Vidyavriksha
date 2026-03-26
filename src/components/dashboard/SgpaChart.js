@@ -1,4 +1,6 @@
 "use client"
+import { getCGPAData } from "@/actions/semester";
+import { useEffect, useState } from "react";
 import {
     LineChart,
     Line,
@@ -8,15 +10,6 @@ import {
     Tooltip,
     ResponsiveContainer
 } from "recharts";
-
-// Temporary dummy data until your backend is wired up
-const mockData = [
-    { Name: "Sem 1", sgpa: 8.12 },
-    { Name: "Sem 2", sgpa: 8.45 },
-    { Name: "Sem 3", sgpa: 8.30 },
-    { Name: "Sem 4", sgpa: 8.90 },
-    { Name: "Sem 5", sgpa: 9.15 },
-];
 
 const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
@@ -32,7 +25,19 @@ const CustomTooltip = ({ active, payload, label }) => {
     return null;
 };
 
-export default function SgpaChart({ data = mockData }) {
+export default function SgpaChart() {
+    const [data, setData] = useState([]);
+
+    useEffect(() => {
+        const fetchChartData = async () => {
+            const result = await getCGPAData();
+            if (result?.success) {
+                setData(result.data);
+            }
+        };
+        fetchChartData();
+    }, []);
+
     return (
         <div className="w-full h-[300px] bg-white/2 border border-white/8 rounded-2xl p-6 relative hover:shadow-2xl drop-shadow-brand group hover:-translate-y-1 transition-transform duration-300">
             <h3 className="text-secondary text-sm font-medium uppercase tracking-wider mb-6">

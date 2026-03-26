@@ -147,3 +147,26 @@ export async function getSemData(SemId) {
         return { success: false, error: "Failed to fetch subjects." };
     }
 }
+
+export async function getCGPAData() {
+    const session = await auth();
+    if (!session?.user?.id)
+        return { success: false, error: "Unauthorized access" };
+
+    const userId = session?.user?.id;
+
+    await dbConnect();
+
+    try {
+        const allSems = await Semester.find({ userId }).sort({ semester: 1 }).lean();
+
+        const Data = allSems.map((sem) => ({
+            Name: `Sem ${sem.semester}`,
+            sgpa: sem.sgpa ?? 0
+        }));
+
+        return { success: true, data: Data };
+    } catch (err) {
+        return { success: false, error: "Failed to fetch semester Data." };
+    }
+}
