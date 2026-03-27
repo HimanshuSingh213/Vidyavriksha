@@ -140,7 +140,11 @@ export async function getSemData(SemId) {
             marks: sub.marks
         }));
 
-        return { success: true, data: formattedSubjects };
+        const totalSubjects = formattedSubjects.length;
+        let totalCredits = 0;
+        formattedSubjects.map((sub) => totalCredits += sub.credits);
+
+        return { success: true, data: formattedSubjects, totalSubjects, totalCredits };
 
 
     } catch (err) {
