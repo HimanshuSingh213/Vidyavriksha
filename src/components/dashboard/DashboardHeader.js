@@ -3,7 +3,7 @@
 import { usePathname } from "next/navigation";
 import { Space_Grotesk } from "next/font/google";
 import { AnimatePresence, motion } from "framer-motion";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo } from "react";
 
 const spaceGrotesk = Space_Grotesk({
     subsets: ["latin"],
@@ -34,21 +34,6 @@ const routeHeadings = [
     },
 ];
 
-const headingVariants = {
-    enter: (direction) => ({
-        y: direction >= 0 ? 14 : -14,
-        opacity: 0,
-    }),
-    center: {
-        y: 0,
-        opacity: 1,
-    },
-    exit: (direction) => ({
-        y: direction >= 0 ? -14 : 14,
-        opacity: 0,
-    }),
-};
-
 function getMatchedRoute(pathname) {
     const matches = routeHeadings.filter(
         ({ match }) => pathname === match || pathname.startsWith(`${match}/`)
@@ -78,40 +63,16 @@ function getHeadingForRoute(route, userName) {
 export default function DashboardHeader({ userName }) {
     const pathname = usePathname();
     const currentRoute = useMemo(() => getMatchedRoute(pathname), [pathname]);
-    const currentIndex = useMemo(
-        () => routeHeadings.findIndex(({ match }) => match === currentRoute.match),
-        [currentRoute.match]
-    );
-
-    const previousIndexRef = useRef(currentIndex);
-    const [direction, setDirection] = useState(0);
-
-    useEffect(() => {
-        const previousIndex = previousIndexRef.current;
-
-        if (currentIndex > previousIndex) {
-            setDirection(1);
-        } else if (currentIndex < previousIndex) {
-            setDirection(-1);
-        } else {
-            setDirection(0);
-        }
-
-        previousIndexRef.current = currentIndex;
-    }, [currentIndex]);
-
     const { heading, subHeading } = getHeadingForRoute(currentRoute, userName);
 
     return (
         <div className="min-h-[52px] overflow-hidden">
-            <AnimatePresence mode="wait" initial={false} custom={direction}>
+            <AnimatePresence mode="wait" initial={false}>
                 <motion.div
                     key={currentRoute.match}
-                    custom={direction}
-                    variants={headingVariants}
-                    initial="enter"
-                    animate="center"
-                    exit="exit"
+                    initial={{ y: 12, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    exit={{ y: -12, opacity: 0 }}
                     transition={{
                         duration: 0.35,
                         ease: [0.3, 1, 0.4, 1],

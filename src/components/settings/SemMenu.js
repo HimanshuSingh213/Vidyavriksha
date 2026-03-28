@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import { getSemesterSummaries, addingSemester, deleteSemester } from "@/actions/semester";
 import { ChevronDown, Trash2Icon } from "lucide-react";
 import UniversalModal from "@/components/ui/UniversalModal";
+import Toast from "@/components/ui/Toast";
 import { useUser } from "@/app/Context/UserContext";
 import { motion } from "framer-motion";
 
@@ -31,6 +32,15 @@ export default function SemMenu() {
     });
 
     const closeModal = () => setModalConfig(prev => ({ ...prev, isOpen: false }));
+
+    // Toast State
+    const [toastConfig, setToastConfig] = useState({
+        isOpen: false,
+        title: "",
+        description: "",
+        type: "info"
+    });
+    const closeToast = () => setToastConfig(prev => ({ ...prev, isOpen: false }));
 
 
     const fetchSemData = async () => {
@@ -89,7 +99,7 @@ export default function SemMenu() {
             const response = await addingSemester(Sem);
 
             if (response.success) {
-                setModalConfig({
+                setToastConfig({
                     isOpen: true,
                     title: "Success",
                     description: `Semester ${Sem} added successfully!`,
@@ -105,7 +115,7 @@ export default function SemMenu() {
                     addSem(newAvailableSems[0]);
                 }
             } else {
-                setModalConfig({
+                setToastConfig({
                     isOpen: true,
                     title: "Error",
                     description: response.error || "Failed to add Semester.",
@@ -114,7 +124,7 @@ export default function SemMenu() {
             }
 
         } catch (err) {
-            setModalConfig({
+            setToastConfig({
                 isOpen: true,
                 title: "Error",
                 description: `Failed to add Semester.\n${err.message || err}`,
@@ -143,7 +153,8 @@ export default function SemMenu() {
             setModalConfig(prev => ({ ...prev, confirmDisabled: true, description: "Deleting..." }));
             const response = await deleteSemester(semId);
             if (response && response.success) {
-                setModalConfig({
+                setModalConfig(prev => ({ ...prev, isOpen: false }));
+                setToastConfig({
                     isOpen: true,
                     title: "Deleted",
                     description: "Semester deleted successfully.",
@@ -158,7 +169,8 @@ export default function SemMenu() {
                     else setSelectedSem("");
                 }
             } else {
-                setModalConfig({
+                setModalConfig(prev => ({ ...prev, isOpen: false }));
+                setToastConfig({
                     isOpen: true,
                     title: "Error",
                     description: response?.error || "Failed to delete semester.",
@@ -166,7 +178,8 @@ export default function SemMenu() {
                 });
             }
         } catch (err) {
-            setModalConfig({
+            setModalConfig(prev => ({ ...prev, isOpen: false }));
+            setToastConfig({
                 isOpen: true,
                 title: "Error",
                 description: `Failed to delete semester.\n${err.message || err}`,
@@ -186,6 +199,14 @@ export default function SemMenu() {
                 confirmText={modalConfig.confirmText}
                 confirmDisabled={modalConfig.confirmDisabled}
                 onConfirm={modalConfig.onConfirm}
+            />
+
+            <Toast 
+                isOpen={toastConfig.isOpen}
+                onClose={closeToast}
+                title={toastConfig.title}
+                description={toastConfig.description}
+                type={toastConfig.type}
             />
 
 

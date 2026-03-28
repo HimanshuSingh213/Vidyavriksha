@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion'
 import React, { useState } from 'react'
 import UniversalModal from '../ui/UniversalModal'
+import Toast from '../ui/Toast'
 import deleteAccount from '@/actions/user';
 import { signOut } from 'next-auth/react';
 
@@ -18,6 +19,15 @@ function AccountDelete() {
     })
 
     const closeModal = () => setModalConfig(prev => ({ ...prev, isOpen: false }))
+
+    // Toast State
+    const [toastConfig, setToastConfig] = useState({
+        isOpen: false,
+        title: "",
+        description: "",
+        type: "info"
+    });
+    const closeToast = () => setToastConfig(prev => ({ ...prev, isOpen: false }));
 
     const triggerDeleteAccount = () => {
         setModalConfig({
@@ -38,7 +48,8 @@ function AccountDelete() {
             const response = await deleteAccount();
 
             if(response && response.success){
-                setModalConfig({
+                setModalConfig(prev => ({ ...prev, isOpen: false }));
+                setToastConfig({
                     isOpen: true,
                     title: "Success",
                     description: response?.message || "Account Deleted Successfully",
@@ -46,16 +57,15 @@ function AccountDelete() {
                 })
 
                 setTimeout(async () => {
-                    setModalConfig({isOpen: false});
-
                     await signOut({ callbackUrl: "/login" })
                 }, 1000);
             }
             else{
-                setModalConfig({
+                setModalConfig(prev => ({ ...prev, isOpen: false }));
+                setToastConfig({
                     isOpen: true,
                     title: "Error",
-                    description: response?.error || "Failed to save marks.",
+                    description: response?.error || "Failed to delete account.",
                     type: "error"
                 });
 
@@ -63,7 +73,14 @@ function AccountDelete() {
             }
 
         } catch (error) {
-
+            setModalConfig(prev => ({ ...prev, isOpen: false }));
+            setToastConfig({
+                isOpen: true,
+                title: "Error",
+                description: error.message || "Something went wrong.",
+                type: "error"
+            });
+            setIsDeleting(false)
         }
     }
 
@@ -78,6 +95,14 @@ function AccountDelete() {
                 confirmText={modalConfig.confirmText}
                 confirmDisabled={modalConfig.confirmDisabled}
                 onConfirm={modalConfig.onConfirm}
+            />
+
+            <Toast 
+                isOpen={toastConfig.isOpen}
+                onClose={closeToast}
+                title={toastConfig.title}
+                description={toastConfig.description}
+                type={toastConfig.type}
             />
 
             <div className='border border-danger/30 rounded-xl bg-danger/5 mt-2'>

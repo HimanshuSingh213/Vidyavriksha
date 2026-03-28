@@ -5,12 +5,22 @@ import SubjectChild from './SubjectChild';
 import UniversalModal from '@/components/ui/UniversalModal';
 import { motion } from 'framer-motion';
 import { addSubject } from '@/actions/subject';
+import Toast from '@/components/ui/Toast';
 
 function SemData() {
 
     const { selectedSem } = useUser();
     const [subjects, setSubjects] = useState([]);
     const [isOpen, setIsOpen] = useState(false);
+    
+    // Toast State
+    const [toastConfig, setToastConfig] = useState({
+        isOpen: false,
+        title: "",
+        description: "",
+        type: "success"
+    });
+    const closeToast = () => setToastConfig(prev => ({ ...prev, isOpen: false }));
     const [addSubjectState, isAddingSubject] = useState({
         name: "",
         code: "",
@@ -63,7 +73,7 @@ function SemData() {
 
     const handleAddSubject = async () => {
         if (!addSubjectState.name || !addSubjectState.code) {
-            setModalConfig({
+            setToastConfig({
                 isOpen: true,
                 title: "Validation Error",
                 description: "Name and Code are required.",
@@ -80,7 +90,7 @@ function SemData() {
             });
 
             if (response && response.success) {
-                setModalConfig({
+                setToastConfig({
                     isOpen: true,
                     title: "Success",
                     description: response.message || "Subject added successfully!",
@@ -94,7 +104,7 @@ function SemData() {
                 // Refresh data
                 await refreshData();
             } else {
-                setModalConfig({
+                setToastConfig({
                     isOpen: true,
                     title: "Error",
                     description: response?.error || "Failed to add subject.",
@@ -103,7 +113,7 @@ function SemData() {
             }
 
         } catch (err) {
-            setModalConfig({
+            setToastConfig({
                 isOpen: true,
                 title: "Error",
                 description: err.message || "Something went wrong.",
@@ -126,6 +136,14 @@ function SemData() {
                 confirmText={modalConfig.confirmText}
                 confirmDisabled={modalConfig.confirmDisabled}
                 onConfirm={modalConfig.onConfirm}
+            />
+
+            <Toast 
+                isOpen={toastConfig.isOpen}
+                onClose={closeToast}
+                title={toastConfig.title}
+                description={toastConfig.description}
+                type={toastConfig.type}
             />
 
             <div>
@@ -220,7 +238,7 @@ function SemData() {
                 <div className='space-y-3'>
                     {subjects.map((sub) => (
                         <div key={sub.id}>
-                            <SubjectChild subject={sub} setModalConfig={setModalConfig} refreshData={refreshData} />
+                            <SubjectChild subject={sub} setModalConfig={setModalConfig} setToastConfig={setToastConfig} refreshData={refreshData} />
                         </div>
                     ))}
                 </div>

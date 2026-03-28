@@ -2,7 +2,7 @@ import updateSubjectMarks, { deleteSubject } from '@/actions/subject';
 import { ChevronDown } from 'lucide-react'
 import React, { useState } from 'react'
 
-function SubjectChild({ subject, setModalConfig, refreshData }) {
+function SubjectChild({ subject, setModalConfig, setToastConfig, refreshData }) {
 
     const [isOpen, setIsOpen] = useState(false)
 
@@ -33,7 +33,7 @@ function SubjectChild({ subject, setModalConfig, refreshData }) {
             const response = await updateSubjectMarks(subject.id, marks);
 
             if (response && response.success) {
-                setModalConfig({
+                setToastConfig({
                     isOpen: true,
                     title: "Success",
                     description: "Marks saved successfully!",
@@ -42,7 +42,7 @@ function SubjectChild({ subject, setModalConfig, refreshData }) {
 
                 if (refreshData) refreshData();
             } else {
-                setModalConfig({
+                setToastConfig({
                     isOpen: true,
                     title: "Error",
                     description: response?.error || "Failed to save marks.",
@@ -51,7 +51,7 @@ function SubjectChild({ subject, setModalConfig, refreshData }) {
             }
         }
         catch (err) {
-            setModalConfig({
+            setToastConfig({
                 isOpen: true,
                 title: "Error",
                 description: err.message || "Failed to save marks.",
@@ -79,7 +79,8 @@ function SubjectChild({ subject, setModalConfig, refreshData }) {
                     const response = await deleteSubject(subject.id);
 
                     if (response && response.success) {
-                        setModalConfig({
+                        setModalConfig(prev => ({...prev, isOpen: false}));
+                        setToastConfig({
                             isOpen: true,
                             title: "Success",
                             description: "Subject deleted successfully!",
@@ -88,7 +89,8 @@ function SubjectChild({ subject, setModalConfig, refreshData }) {
                         
                         if (refreshData) refreshData();
                     } else {
-                        setModalConfig({
+                        setModalConfig(prev => ({...prev, isOpen: false}));
+                        setToastConfig({
                             isOpen: true,
                             title: "Error",
                             description: response?.error || "Failed to delete subject.",
@@ -96,7 +98,8 @@ function SubjectChild({ subject, setModalConfig, refreshData }) {
                         });
                     }
                 } catch (err) {
-                    setModalConfig({
+                    setModalConfig(prev => ({...prev, isOpen: false}));
+                    setToastConfig({
                         isOpen: true,
                         title: "Error",
                         description: err.message || "Failed to delete subject.",
@@ -117,7 +120,7 @@ function SubjectChild({ subject, setModalConfig, refreshData }) {
                     {/* left */}
                     <div className='flex items-center gap-3'>
                         <span className='py-1.5 px-2 bg-primary/5 text-secondary text-xs font-mono border border-primary/15 rounded-md'>{subject.code}</span>
-                        <h3 className='text-sm text-primary'>{subject.name}</h3>
+                        <h3 className='text-sm text-primary truncate'>{subject.name}</h3>
                     </div>
                     {/* Right */}
                     <div className='flex items-center gap-3'>
@@ -168,6 +171,7 @@ function SubjectChild({ subject, setModalConfig, refreshData }) {
                                     <input
                                         value={internal}
                                         onChange={(e) => setInternal(e.target.value)}
+                                        max={40}
                                         type="number" name="internal"
                                         className='rounded-lg h-full border text-xs text-primary border-primary/10 bg-primary/5 focus:ring focus:ring-primary/15 focus:outline-none transition-all duration-200 px-2 py-1 w-full
                                 [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-inner-spin-button]:m-0 [appearance:textfield]
@@ -183,6 +187,7 @@ function SubjectChild({ subject, setModalConfig, refreshData }) {
                                     <input
                                         value={endsem}
                                         onChange={(e) => setEndsem(e.target.value)}
+                                        max={60}
                                         type="number" name="endsem"
                                         className='rounded-lg h-full border text-xs text-primary border-primary/10 bg-primary/5 focus:ring focus:ring-primary/15 focus:outline-none transition-all duration-200 px-2 py-1 w-full
                                 [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-inner-spin-button]:m-0 [appearance:textfield]

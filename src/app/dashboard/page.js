@@ -87,7 +87,7 @@ export default function DashboardPage() {
           {/* Subjects - Schedule Wise */}
           <div className="grid md:grid-cols-1 grid-flow-row grid-cols-3 gap-4 w-full">
             {todaySchedule.length === 0 ? (
-              <p className="text-secondary text-sm font-mono text-center py-4 hover:shadow-xl shadow-brand/5 transition duration-300 ease-in-out">No classes scheduled for today.</p>
+              <p className="text-secondary text-sm font-mono text-center py-4">No classes scheduled for today.</p>
             ) : (
               todaySchedule.map((lecture) => (
                 <LectureItem

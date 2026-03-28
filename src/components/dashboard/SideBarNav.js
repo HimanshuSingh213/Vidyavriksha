@@ -3,6 +3,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { LogOut, Settings } from "lucide-react";
+import { motion } from "framer-motion";
 
 export default function SidebarNav({ navLinks, user, signOutAction }) {
     const pathname = usePathname();
@@ -45,7 +46,7 @@ export default function SidebarNav({ navLinks, user, signOutAction }) {
                     <Link
                         title="Settings"
                         href="/dashboard/settings"
-                        className={`w-1/2 h-8 py-2 flex items-center justify-center text-xs font-medium hover:bg-white/5 border border-white/8 rounded-lg transition-colors duration-300 ease-in-out  hover:text-primary ${pathname === "/dashboard/settings"? "bg-white/5 border border-white/8 text-primary": "text-secondary"}`}
+                        className={`w-1/2 h-8 py-2 flex items-center justify-center text-xs font-medium hover:bg-white/5 border border-white/8 rounded-lg transition-colors duration-300 ease-in-out  hover:text-primary ${pathname === "/dashboard/settings" ? "bg-white/5 border border-white/8 text-primary" : "text-secondary"}`}
                     >
                         {<Settings size={18} />}
                     </Link>
@@ -64,19 +65,23 @@ export default function SidebarNav({ navLinks, user, signOutAction }) {
 
 function NavItem({ href, icon, label, action, active }) {
     return (
-        <Link
-            href={href}
-            className={`flex items-center gap-3 px-2 py-1.5 rounded-lg transition-colors duration-300 ease-in-out text-sm font-medium border ${active
-                ? "bg-brand/10 text-brand border-brand/20"
-                : "text-secondary hover:text-primary hover:bg-white/5 border-transparent"
-                }`}
+        <motion.div
+        whileTap={{scale: 0.99}}
         >
-            {icon}
-            <div className={`flex flex-col w-full gap-px justify-center items-start transition-colors duration-300 ${active ? "text-primary" : "text-secondary hover:text-primary"
-                }`}>
-                {label}
-                {action && <span className="font-mono text-[10px] font-light">{action}</span>}
-            </div>
-        </Link>
+            <Link
+                href={href}
+                className={`flex items-center gap-3 px-2 py-1.5 rounded-lg transition-colors duration-300 ease-in-out text-sm font-medium border ${active
+                    ? "bg-brand/10 text-brand border-brand/20"
+                    : "text-secondary hover:text-primary hover:bg-white/5 border-transparent"
+                    }`}
+            >
+                {icon}
+                <div className={`flex flex-col w-full gap-px justify-center items-start transition-colors duration-300 ${active ? "text-primary" : "text-secondary hover:text-primary"
+                    }`}>
+                    {label}
+                    {action && <span className="font-mono text-[10px] font-light">{action}</span>}
+                </div>
+            </Link>
+        </motion.div>
     );
 }

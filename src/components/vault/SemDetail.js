@@ -109,7 +109,7 @@ export function SemDetail(semData) {
                                                 initial={{ width: 0 }}
                                                 animate={{ width: `${percent}%` }}
                                                 transition={{ duration: 1, ease: "easeOut", delay: 0.1 }}
-                                                className={`h-full rounded-full ${percent >= 40 ? percent >= 70? "bg-success": "bg-warning" : "bg-danger"}`}
+                                                className={`h-full rounded-full ${percent >= 40 ? percent >= 75? "bg-success": "bg-warning" : "bg-danger"}`}
                                             />
                                         </div>
                                         <span className="text-xs font-mono text-secondary w-8 text-right">{totalMarks}</span>
