@@ -104,7 +104,7 @@ export default function SGPAProgressionChart({ data, targetCgpa = 8.0 }) {
       {/* Bottom Section: Color-Coded Semester Grid */}
       <div className="border-t border-white/8 pt-6">
         <h4 className="mb-4 text-sm font-semibold text-primary">Semester Breakdown</h4>
-        <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-8 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
           {data.map((item, index) => {
             const colorClass = getScoreColor(item.sgpa);
             return (

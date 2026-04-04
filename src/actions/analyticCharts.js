@@ -5,7 +5,30 @@ import dbConnect from "@/lib/db";
 import { redirect } from "next/navigation";
 import { Semester } from "@/models/semester.model";
 import { subject } from "@/models/subject.model";
-import { User } from "@/models/user.model";
+import { unstable_cache } from "next/cache";
+
+const getCachedStackedMarks = unstable_cache(
+    async (userId, semId) => {
+        
+        await dbConnect();
+
+        const rawSubjects = await subject.find({
+            userId,
+            semester: semId
+        })
+
+        return rawSubjects.map(sub => ({
+            subject: sub.name,
+            internal: sub.marks.internal || 0,
+            external: sub.marks.endsem || 0
+        }));
+    },
+    ["stacked-marks"],
+    {
+        tags: ["analytics-data"],
+        revalidate: 86400
+    }
+)
 
 export default async function stackedMarksData(SemId) {
     const session = await auth();
@@ -15,20 +38,8 @@ export default async function stackedMarksData(SemId) {
     try {
         const userId = session?.user?.id;
 
-        await dbConnect();
-
-        const rawSubjects = await subject.find({
-            userId,
-            semester: SemId
-        });
-
-        const stackedMarksData = rawSubjects.map(sub => ({
-            subject: sub.name,
-            internal: sub.marks.internal || 0,
-            external: sub.marks.endsem || 0
-        }));
-
-        return { success: true, data: stackedMarksData }
+        const stackedData = await getCachedStackedMarks(userId, SemId);
+        return { success: true, data: stackedData };
 
     } catch (err) {
         return { success: false, error: "Error while fetching data for charts" }
@@ -53,6 +64,7 @@ export const RadialChartData = async (SemId) => {
     const session = await auth();
 
     if (!session) redirect("/login");
+
     try {
         const userId = session?.user?.id;
 
@@ -118,9 +130,6 @@ export const fetchSGPAProgressionChart = async () => {
 
         await dbConnect();
 
-        const userDoc = await User.findById(userId).lean();
-        const targetCgpa = userDoc?.targetCgpa || 8.0;
-
         const rawSemesters = await Semester.find({ userId }).sort({ semester: 1 }).lean();
 
         const sgpaProgressionData = rawSemesters.map(sem => ({
@@ -128,7 +137,7 @@ export const fetchSGPAProgressionChart = async () => {
             sgpa: sem.sgpa || 0,
         }));
 
-        return { success: true, data: sgpaProgressionData, targetCgpa: targetCgpa };
+        return { success: true, data: sgpaProgressionData };
 
     } catch (err) {
         return { success: false, error: "Error while fetching data for charts" }

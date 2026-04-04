@@ -22,6 +22,8 @@ export default async function deleteAccount() {
     await dbConnect();
 
     try {
+
+        const objectIdUserId = new mongoose.Types.ObjectId(userId);
         const [
             timetableDel,
             attendanceDel,
@@ -29,7 +31,8 @@ export default async function deleteAccount() {
             subjectsDel,
             semestersDel,
             userDel,
-            accountDel
+            accountDel,
+            sessionDel
         ] = await Promise.all([
             Timetable.deleteMany({ userId }),     //  Delete all timetables
             attendance.deleteMany({ userId }),    //  Delete all attendance records
@@ -37,7 +40,8 @@ export default async function deleteAccount() {
             subject.deleteMany({ userId }),       //  Delete all subjects
             Semester.deleteMany({ userId }),      //  Delete all semesters
             User.findByIdAndDelete(userId),       //  Delete the actual User Profile
-            Account.deleteMany({ userId })        //  Delete the OAuth related deltails
+            mongoose.connection.db.collection('accounts').deleteMany({ userId: objectIdUserId }),
+            mongoose.connection.db.collection('sessions').deleteMany({ userId: objectIdUserId })
         ]);
 
         if (!userDel) {

@@ -9,6 +9,7 @@ import Toast from '@/components/ui/Toast';
 import RadialChart from '@/components/analytics/RadialChart';
 import DistributedBarGraph from '@/components/analytics/DistributedBarGraph';
 import SgpaProgressChart from '@/components/analytics/SGPAProgressionChart';
+import { useUser } from '@/app/Context/UserContext';
 
 function AnalyticsPage() {
 
@@ -18,7 +19,7 @@ function AnalyticsPage() {
   const [radialData, setRadialData] = useState({});
   const [distributedGraphData, setDistributedGraphData] = useState({});
   const [sgpaProgressionData, setSgpaProgressionData] = useState({});
-  const [targetCGPA, setTargetCGPA] = useState(8);
+  const { targetCGPA } = useUser()
   const [selectionOpen, setSelectionOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -36,15 +37,17 @@ function AnalyticsPage() {
       try {
         const data = await getSems();
 
-        if (data) {
+        if (data && data.length > 0) {
           setTotalSems(data);
           setSelectedSem(data[0]);
+        } else {
+          setTotalSems([]);
+          setIsLoading(false);
         }
-
 
       } catch (err) {
         console.error('Error while fetching SemData');
-
+        setIsLoading(false);
       }
     }
 
@@ -53,6 +56,9 @@ function AnalyticsPage() {
 
   useEffect(() => {
     const fetchMarksData = async () => {
+      if (!selectedSem || !selectedSem._id) return;
+
+      setIsLoading(true);
       try {
         const [res1, res2, res3, res4] = await Promise.all([
           stackedMarksData(selectedSem._id),
@@ -66,7 +72,6 @@ function AnalyticsPage() {
           setRadialData(res2.data);
           setDistributedGraphData(res3.data);
           setSgpaProgressionData(res4.data);
-          setTargetCGPA(res4.targetCgpa);
         }
         else {
           setToastConfig({
@@ -83,21 +88,27 @@ function AnalyticsPage() {
           description: `Failed to fetch Semester details.\n${err.message || err}`,
           type: "error",
         });
+      } finally {
+        setIsLoading(false);
       }
     }
     fetchMarksData();
   }, [selectedSem])
 
-  useEffect(() => {
-    if (selectedSem && stackedData && radialData && distributedGraphData && sgpaProgressionData) {
-      setIsLoading(false)
-    }
-  }, [selectedSem, stackedData, radialData, distributedGraphData, sgpaProgressionData])
-
   if (isLoading) {
     return (
       <div className="min-h-screen bg-obsidian flex items-center justify-center">
         <Loader2 className="animate-spin text-brand w-8 h-8" />
+      </div>
+    );
+  }
+
+  if (!totalSems || totalSems.length === 0) {
+    return (
+      <div className="flex items-center justify-center min-h-[50vh]">
+          <p className="text-secondary/80 text-sm font-medium">
+              No semester is added. Please add a semester from the settings tab.
+          </p>
       </div>
     );
   }
@@ -165,15 +176,15 @@ function AnalyticsPage() {
           <div className='mt-5'>
             <RadialChart data={radialData} />
           </div>
-         
+
           {/* Distributed Marks Bar Graph */}
           <div className='mt-5'>
             <DistributedBarGraph data={distributedGraphData} />
           </div>
-          
+
           {/* SGPA Progression Chart */}
           <div className='mt-5'>
-            <SgpaProgressChart data={sgpaProgressionData} targetCgpa={targetCGPA}/>
+            <SgpaProgressChart data={sgpaProgressionData} targetCgpa={targetCGPA} />
           </div>
         </div>
       </div>
