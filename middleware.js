@@ -3,6 +3,8 @@ import authConfig from "./src/auth.config";
 
 export const { auth: middleware } = NextAuth(authConfig);
 
+import { NextResponse } from "next/server";
+
 export default middleware((req) => {
     const isLoggedIn = !!req.auth;
     const isAuthRoute = req.nextUrl.pathname.startsWith("/login");
@@ -10,12 +12,12 @@ export default middleware((req) => {
 
     // if anyone trying to enter the dashboard without login(without badge), redirecting them to loginPage
     if(isDashboardRoute && !isLoggedIn){
-        return Response.redirect(new URL("/login", req.nextUrl));
+        return NextResponse.redirect(new URL("/login", req.url));
     }
 
     // if they already have a badge, redirecting to the dashboard 
     if(isAuthRoute && isLoggedIn){
-        return Response.redirect(new URL("/dashboard", req.nextUrl))
+        return NextResponse.redirect(new URL("/dashboard", req.url))
     }
 });
 
