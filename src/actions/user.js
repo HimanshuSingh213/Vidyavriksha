@@ -8,6 +8,7 @@ import { Exam } from '@/models/exam.model';
 import mongoose from 'mongoose';
 import { subject } from '@/models/subject.model';
 import { User } from '@/models/user.model';
+import { revalidateTag } from 'next/cache';
 
 const Account = mongoose.models.Account || mongoose.model('Account', new mongoose.Schema({}, { strict: false }));
 
@@ -47,6 +48,12 @@ export default async function deleteAccount() {
         if (!userDel) {
             return { success: false, error: "User account not found." };
         }
+
+        revalidateTag(`dashboard-${userId}`);
+        revalidateTag(`analytics-${userId}`);
+        revalidateTag(`vault-${userId}`);
+        revalidateTag(`semester-${userId}`);
+        revalidateTag(`settings-${userId}`);
 
         return { success: true, message: "Account and all associated data completely deleted." };
 

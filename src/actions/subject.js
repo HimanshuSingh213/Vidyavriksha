@@ -3,6 +3,7 @@
 import { auth } from "@/auth";
 import dbConnect from "@/lib/db";
 import { subject } from "@/models/subject.model";
+import { revalidateTag } from "next/cache";
 
 export default async function updateSubjectMarks(SubId, updatedMarks) {
     const session = await auth();
@@ -33,6 +34,9 @@ export default async function updateSubjectMarks(SubId, updatedMarks) {
             return { success: false, error: "Subject not found or you don't have permission." };
         }
 
+        revalidateTag(`analytics-${userId}`);
+        revalidateTag(`semester-${userId}`);
+
         return { success: true, message: "Marks updated successfully!" };
 
     } catch (error) {
@@ -60,6 +64,10 @@ export async function deleteSubject(SubId) {
             return { success: false, error: "Subject not found" };
         }
 
+        revalidateTag(`analytics-${userId}`);
+        revalidateTag(`vault-${userId}`);
+        revalidateTag(`semester-${userId}`);
+
         return { success: true, message: "Subject deleted successfully" };
     } catch (err) {
         return { success: false, error: "Failed to delete Subject" };
@@ -84,6 +92,10 @@ export async function addSubject(subjectData){
             semester: subjectData.semester,
             userId: userId
         });
+
+        revalidateTag(`analytics-${userId}`);
+        revalidateTag(`vault-${userId}`);
+        revalidateTag(`semester-${userId}`);
 
         return {
             success: true,

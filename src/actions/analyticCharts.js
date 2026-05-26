@@ -7,38 +7,35 @@ import { Semester } from "@/models/semester.model";
 import { subject } from "@/models/subject.model";
 import { unstable_cache } from "next/cache";
 
-const getCachedStackedMarks = unstable_cache(
-    async (userId, semId) => {
-        
-        await dbConnect();
-
-        const rawSubjects = await subject.find({
-            userId,
-            semester: semId
-        })
-
-        return rawSubjects.map(sub => ({
-            subject: sub.name,
-            internal: sub.marks.internal || 0,
-            external: sub.marks.endsem || 0
-        }));
-    },
-    ["stacked-marks"],
-    {
-        tags: ["analytics-data"],
-        revalidate: 86400
-    }
-)
-
 export default async function stackedMarksData(SemId) {
     const session = await auth();
 
     if (!session) redirect("/login");
+    const userId = session?.user?.id;
 
+    const getCachedData = unstable_cache(
+        async () => {
+            await dbConnect();
+
+            const rawSubjects = await subject.find({
+                userId,
+                semester: SemId
+            }).lean();
+
+            return rawSubjects.map(sub => ({
+                subject: sub.name,
+                internal: sub.marks.internal || 0,
+                external: sub.marks.endsem || 0
+            }));
+        },
+        [`stacked-marks-${userId}-${SemId}`],
+        {
+            tags: [`analytics-${userId}`],
+            revalidate: 86400
+        }
+    )
     try {
-        const userId = session?.user?.id;
-
-        const stackedData = await getCachedStackedMarks(userId, SemId);
+        const stackedData = await getCachedData();
         return { success: true, data: stackedData };
 
     } catch (err) {
@@ -52,38 +49,52 @@ export async function getSems() {
     if (!session) redirect("/login");
     const userId = session?.user?.id;
 
-    await dbConnect();
-    const TotalSemesters = await Semester.find({
-        userId,
-    }).sort({ semester: 1 }).lean();
+    const getCachedSems = unstable_cache(
+        async () => {
+            await dbConnect();
+            const TotalSemesters = await Semester.find({
+                userId,
+            }).sort({ semester: 1 }).lean();
 
-    return JSON.parse(JSON.stringify(TotalSemesters));
+            return JSON.parse(JSON.stringify(TotalSemesters));
+        },
+        [`sems-${userId}`],
+        { tags: [`analytics-${userId}`], revalidate: 86400 }
+    )
+
+    return await getCachedSems();
 }
 
 export const RadialChartData = async (SemId) => {
     const session = await auth();
 
     if (!session) redirect("/login");
+    const userId = session?.user?.id;
+
+    const getCachedData = unstable_cache(
+        async () => {
+            await dbConnect();
+
+            const rawSubjects = await subject.find({
+                userId,
+                semester: SemId
+            }).lean();
+
+            return rawSubjects.map(sub => {
+                const totalScore = (sub.marks?.internal || 0) + (sub.marks?.endsem || 0);
+                return {
+                    subject: sub.name,
+                    score: totalScore,
+                    fullMark: 100
+                };
+            });
+        },
+        [`radial-chart-${userId}-${SemId}`],
+        { tags: [`analytics-${userId}`], revalidate: 86400 }
+    )
 
     try {
-        const userId = session?.user?.id;
-
-        await dbConnect();
-
-        const rawSubjects = await subject.find({
-            userId,
-            semester: SemId
-        }).lean();
-
-        const performanceData = rawSubjects.map(sub => {
-            const totalScore = (sub.marks?.internal || 0) + (sub.marks?.endsem || 0);
-            return {
-                subject: sub.name,
-                score: totalScore,
-                fullMark: 100
-            };
-        });
-
+        const performanceData = await getCachedData();
         return { success: true, data: performanceData };
 
     } catch (err) {
@@ -95,24 +106,29 @@ export const fetchDistributedBarGraph = async (SemId) => {
     const session = await auth();
 
     if (!session) redirect("/login");
+    const userId = session?.user?.id;
 
+    const getCachedData = unstable_cache(
+        async () => {
+            await dbConnect();
+
+            const rawSubjects = await subject.find({
+                userId,
+                semester: SemId
+            }).lean();
+
+            return rawSubjects.map(sub => ({
+                subject: sub.name,
+                minor1: sub.marks?.minor1 || 0,
+                minor2: sub.marks?.minor2 || 0,
+                endsem: sub.marks?.endsem || 0
+            }));
+        },
+        [`distributed-bar-${userId}-${SemId}`],
+        { tags: [`analytics-${userId}`], revalidate: 86400 }
+    )
     try {
-        const userId = session?.user?.id;
-
-        await dbConnect();
-
-        const rawSubjects = await subject.find({
-            userId,
-            semester: SemId
-        }).lean();
-
-        const examTrendData = rawSubjects.map(sub => ({
-            subject: sub.name,
-            minor1: sub.marks?.minor1 || 0,
-            minor2: sub.marks?.minor2 || 0,
-            endsem: sub.marks?.endsem || 0
-        }));
-
+        const examTrendData = await getCachedData();
         return { success: true, data: examTrendData };
 
     } catch (err) {
@@ -124,19 +140,24 @@ export const fetchSGPAProgressionChart = async () => {
     const session = await auth();
 
     if (!session) redirect("/login");
+    const userId = session?.user?.id;
 
+    const getCachedData = unstable_cache(
+        async () => {
+            await dbConnect();
+
+            const rawSemesters = await Semester.find({ userId }).sort({ semester: 1 }).lean();
+
+            return rawSemesters.map(sem => ({
+                semester: `Sem ${sem.semester}`,
+                sgpa: sem.sgpa || 0,
+            }));
+        },
+        [`sgpa-progression-${userId}`],
+        { tags: [`analytics-${userId}`], revalidate: 86400 }
+    )
     try {
-        const userId = session?.user?.id;
-
-        await dbConnect();
-
-        const rawSemesters = await Semester.find({ userId }).sort({ semester: 1 }).lean();
-
-        const sgpaProgressionData = rawSemesters.map(sem => ({
-            semester: `Sem ${sem.semester}`,
-            sgpa: sem.sgpa || 0,
-        }));
-
+        const sgpaProgressionData = await getCachedData();
         return { success: true, data: sgpaProgressionData };
 
     } catch (err) {

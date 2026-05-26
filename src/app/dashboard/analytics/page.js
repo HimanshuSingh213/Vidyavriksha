@@ -75,7 +75,6 @@ async function AnalyticsPage({ searchParams }) {
         <AnalyticsToast error={serverError} />
 
 
-        {/* Upper Deck */}
         <div>
           {/* Sem Selection */}
           <div className='flex justify-start items-center rounded-xl bg-primary/3 border-2 border-primary/5 px-4 py-5'>
@@ -86,7 +85,6 @@ async function AnalyticsPage({ searchParams }) {
             </div>
           </div>
 
-          {/* Lower Deck */}
           {!serverError && (
             <ChartsWrapper
               stackedData={stackedData}

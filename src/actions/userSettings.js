@@ -3,21 +3,31 @@
 import { auth } from "@/auth";
 import dbConnect from "@/lib/db";
 import { User } from "@/models/user.model";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag, unstable_cache } from "next/cache";
 
 export async function getUserSettings() {
     const session = await auth();
     if (!session?.user?.id) return null;
+    const userId = session.user.id;
 
-    await dbConnect();
-    const user = await User.findById(session.user.id).lean();
-    return JSON.parse(JSON.stringify(user));
+    const getCachedSettings = unstable_cache(
+        async () => {
+            await dbConnect();
+            const user = await User.findById(userId).lean();
+            return JSON.parse(JSON.stringify(user));
+        },
+        [`settings-${userId}`], // Unique Cache Key
+        { tags: [`settings-${userId}`], revalidate: 86400 } // Invalidation Tag
+    );
+
+    return await getCachedSettings();
 }
 
 export async function updateUserSettings(data) {
     try {
         const session = await auth();
         if (!session?.user?.id) throw new Error("Unauthorized");
+        const userId = session?.user?.id;
 
         await dbConnect();
 
@@ -48,6 +58,9 @@ export async function updateUserSettings(data) {
         if (!updatedUser) {
             throw new Error("User not found in the database.");
         }
+
+        revalidateTag(`settings-${userId}`);
+        revalidateTag(`vault-${userId}`);
 
         revalidatePath("/dashboard/settings");
         revalidatePath("/dashboard/vault");
