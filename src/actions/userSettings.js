@@ -4,6 +4,7 @@ import { auth } from "@/auth";
 import dbConnect from "@/lib/db";
 import { User } from "@/models/user.model";
 import { revalidatePath, revalidateTag, unstable_cache } from "next/cache";
+import { calculateUserCGPA } from "./semester";
 
 export async function getUserSettings() {
     const session = await auth();
@@ -37,7 +38,8 @@ export async function updateUserSettings(data) {
             targetCGPA,
             universityScale,
             currentSem,
-            currentCGPA
+            currentCGPA,
+            autoCalculateCGPA
         } = data;
 
         const updateFields = {};
@@ -47,13 +49,25 @@ export async function updateUserSettings(data) {
         if (targetCGPA !== undefined) updateFields.targetCGPA = targetCGPA;
         if (universityScale !== undefined) updateFields.universityScale = universityScale;
         if (currentSem !== undefined) updateFields.currentSem = currentSem;
+        if (autoCalculateCGPA !== undefined) updateFields.autoCalculateCGPA = autoCalculateCGPA;
         if (currentCGPA !== undefined) updateFields.currentCGPA = currentCGPA;
+
+        if (autoCalculateCGPA === true) {
+            const semesterNumber = Number(currentSem);
+            if (semesterNumber > 1) {
+                updateFields.currentCGPA = await calculateUserCGPA(userId, semesterNumber);
+            } else {
+                updateFields.currentCGPA = 0;
+            }
+        } else if (currentCGPA !== undefined) {
+            updateFields.currentCGPA = currentCGPA;
+        }
 
         const updatedUser = await User.findByIdAndUpdate(
             session.user.id,
             { $set: updateFields },
             { new: true }
-        );
+        ).lean();
 
         if (!updatedUser) {
             throw new Error("User not found in the database.");
@@ -67,11 +81,12 @@ export async function updateUserSettings(data) {
 
         return {
             success: true,
-            message: "Settings updated successfully"
+            message: "Settings updated successfully",
+            updatedCGPA: updateFields.currentCGPA !== undefined ? updateFields.currentCGPA : updatedUser.currentCGPA
         };
     } catch (err) {
         console.error("Error updating user settings:", err);
- 
+
         return {
             success: false,
             message: err.message || "Failed to update settings"

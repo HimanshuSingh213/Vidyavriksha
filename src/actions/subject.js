@@ -3,6 +3,7 @@
 import { auth } from "@/auth";
 import dbConnect from "@/lib/db";
 import { subject } from "@/models/subject.model";
+import { syncUserCGPAIfAuto, updateSemesterSGPA } from "./semester";
 import { revalidateTag } from "next/cache";
 
 export default async function updateSubjectMarks(SubId, updatedMarks) {
@@ -34,6 +35,8 @@ export default async function updateSubjectMarks(SubId, updatedMarks) {
             return { success: false, error: "Subject not found or you don't have permission." };
         }
 
+        await updateSemesterSGPA(result.semester, userId);
+        await syncUserCGPAIfAuto(userId);
         revalidateTag(`analytics-${userId}`);
         revalidateTag(`semester-${userId}`);
 
@@ -64,6 +67,8 @@ export async function deleteSubject(SubId) {
             return { success: false, error: "Subject not found" };
         }
 
+        await updateSemesterSGPA(SubToDelete.semester, userId);
+        await syncUserCGPAIfAuto(userId);
         revalidateTag(`analytics-${userId}`);
         revalidateTag(`vault-${userId}`);
         revalidateTag(`semester-${userId}`);
@@ -93,6 +98,9 @@ export async function addSubject(subjectData){
             userId: userId
         });
 
+        await updateSemesterSGPA(subjectData.semester, session.user.id);
+        await syncUserCGPAIfAuto(userId);
+
         revalidateTag(`analytics-${userId}`);
         revalidateTag(`vault-${userId}`);
         revalidateTag(`semester-${userId}`);
@@ -105,4 +113,18 @@ export async function addSubject(subjectData){
     } catch (err) {
         return { success: false, error: err.message || "Failed to add subject" };
     }
+}
+
+// Helper function to convert raw marks to a Grade Point (0-10)
+export async function getGradePointFromMarks(marks) {
+    const numMarks = Number(marks);
+    if (isNaN(numMarks) || numMarks < 0) return 0;
+    
+    if (numMarks >= 90) return 10;
+    if (numMarks >= 80) return 9;
+    if (numMarks >= 70) return 8;
+    if (numMarks >= 60) return 7;
+    if (numMarks >= 50) return 6;
+    if (numMarks >= 40) return 5; 
+    return 0;
 }

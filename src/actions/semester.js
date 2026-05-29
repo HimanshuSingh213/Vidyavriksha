@@ -7,7 +7,9 @@ import { Exam } from "@/models/exam.model";
 import { Semester } from "@/models/semester.model";
 import { subject } from "@/models/subject.model";
 import { Timetable } from "@/models/timetable.model";
+import { User } from "@/models/user.model";
 import { revalidateTag, unstable_cache } from "next/cache";
+import { getGradePointFromMarks } from "./subject";
 
 export async function getSemesterSummaries() {
     const session = await auth();
@@ -117,6 +119,8 @@ export async function deleteSemester(SemId) {
         revalidateTag(`vault-${userId}`);
         revalidateTag(`dashboard-${userId}`);
 
+        await syncUserCGPAIfAuto(userId);
+
         return { success: true, message: "Semester and all related data deleted successfully!" };
 
     } catch (err) {
@@ -191,4 +195,88 @@ export async function getCGPAData() {
     } catch (err) {
         return { success: false, error: "Failed to fetch semester Data." };
     }
+}
+
+export const updateSemesterSGPA = async (SemId, userId) => {
+    await dbConnect();
+
+    const subjects = await subject.find({ userId: userId, semester: SemId }).lean();
+
+    if (!subjects || subjects.length === 0) {
+        await Semester.findByIdAndUpdate(SemId, { sgpa: 0 });
+        return 0;
+    }
+
+    let totalPoints = 0;
+    let totalCredits = 0;
+
+    for (const sub of subjects) {
+        const credits = Number(sub.credits) || 0;
+        const marks = (Number(sub.marks?.internal) || 0) + (Number(sub.marks?.endsem) || 0);
+        const gradePoint = await getGradePointFromMarks(marks);
+
+        if (credits > 0) {
+            totalPoints += (gradePoint * credits);
+            totalCredits += credits;
+        }
+    }
+
+    const finalSGPA = totalCredits > 0 ? Number((totalPoints / totalCredits).toFixed(2)) : 0;
+
+    await Semester.findByIdAndUpdate(SemId, { sgpa: finalSGPA });
+
+    return finalSGPA;
+}
+
+export const calculateUserCGPA = async (userId, currentSem) => {
+    const pastSems = await Semester.find({
+        userId: userId,
+        semester: { $lt: currentSem }
+    }).lean();
+
+    let totalWeightedPoints = 0;
+    let totalCreditsOverall = 0;
+
+    for (const sem of pastSems) {
+        let currentSgpa = sem.sgpa;
+
+        if (!currentSgpa || currentSgpa === 0) {
+            currentSgpa = await updateSemesterSGPA(sem._id, userId);
+        }
+
+        const subjects = await subject.find({ userId: userId, semester: sem._id }).lean();
+        const semCredits = subjects.reduce((sum, sub) => sum + (sub.credits || 0), 0);
+
+        if (semCredits > 0 && currentSgpa > 0) {
+            totalWeightedPoints += (currentSgpa * semCredits);
+            totalCreditsOverall += semCredits;
+        }
+    }
+
+    return totalCreditsOverall > 0 ? Number((totalWeightedPoints / totalCreditsOverall).toFixed(2)) : 0;
+}
+
+export const syncUserCGPAIfAuto = async (userId) => {
+    await dbConnect();
+
+    const user = await User.findById(userId)
+        .select("autoCalculateCGPA currentCGPA currentSem")
+        .lean();
+
+    const shouldAutoCalculate = user?.autoCalculateCGPA !== undefined
+        ? user.autoCalculateCGPA
+        : !(user?.currentCGPA > 0);
+
+    if (!shouldAutoCalculate) return null;
+
+    const currentSem = Number(user.currentSem) || 1;
+    const currentCGPA = currentSem > 1 ? await calculateUserCGPA(userId, currentSem) : 0;
+
+    await User.findByIdAndUpdate(userId, { currentCGPA });
+
+    revalidateTag(`settings-${userId}`);
+    revalidateTag(`vault-${userId}`);
+    revalidateTag(`dashboard-${userId}`);
+
+    return currentCGPA;
 }

@@ -31,6 +31,10 @@ const userSchema = new mongoose.Schema({
         type: Number,
         default: null
     },
+    autoCalculateCGPA: {
+        type: Boolean,
+        default: true
+    },
     currentSem: {
         type: Number,
         default: 1

@@ -10,6 +10,11 @@ export function UserProvider({ children, session, initialData }) {
   const [universityScale, setUniversityScale] = useState(initialData?.universityScale ?? 10);
   const [currentCGPA, setCurrentCGPA] = useState(initialData?.currentCGPA ?? null);
   const [currentSem, setCurrentSem] = useState(initialData?.currentSem ?? 1);
+  const [isManualCGPA, setIsManualCGPA] = useState(
+    initialData?.autoCalculateCGPA !== undefined
+      ? !initialData.autoCalculateCGPA
+      : !!initialData?.currentCGPA && initialData.currentCGPA > 0
+  );
 
   const updateName = (newName) => {
     setDisplayName(newName);
@@ -37,7 +42,9 @@ export function UserProvider({ children, session, initialData }) {
     universityScale, 
     setUniversityScale,
     targetCGPA, 
-    setTargetCGPA
+    setTargetCGPA,
+    isManualCGPA,
+    setIsManualCGPA
   }
 
   return (

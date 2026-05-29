@@ -15,7 +15,9 @@ export default function SettingOptions({ session }) {
         targetCGPA, setTargetCGPA,
         universityScale, setUniversityScale,
         currentCGPA, setCurrentCGPA,
-        currentSem, setCurrentSem
+        currentSem, setCurrentSem,
+        isManualCGPA: savedIsManualCGPA,
+        setIsManualCGPA: setSavedIsManualCGPA
     } = useUser();
 
     // Local state for form fields
@@ -26,7 +28,8 @@ export default function SettingOptions({ session }) {
     const [localCurrentSem, setLocalCurrentSem] = useState(currentSem || 1);
     const [localCurrentCGPA, setLocalCurrentCGPA] = useState(currentCGPA || 0);
 
-    const [isManualCGPA, setIsManualCGPA] = useState(!!currentCGPA && currentCGPA > 0);
+    const [isManualCGPA, setIsManualCGPA] = useState(savedIsManualCGPA);
+    const [isCalculating, setIsCalculating] = useState(false);
 
     useEffect(() => {
         setLocalName(displayName || "");
@@ -35,8 +38,8 @@ export default function SettingOptions({ session }) {
         setLocalUnivScale(universityScale || 10);
         setLocalCurrentSem(currentSem || 1);
         setLocalCurrentCGPA(currentCGPA || 0);
-        setIsManualCGPA(!!currentCGPA && currentCGPA > 0);
-    }, [displayName, program, targetCGPA, universityScale, currentCGPA, currentSem]);
+        setIsManualCGPA(savedIsManualCGPA);
+    }, [displayName, program, targetCGPA, universityScale, currentCGPA, currentSem, savedIsManualCGPA]);
 
     const courses = [
         { value: 'B.Tech CSE', label: 'B.Tech Computer Science & Engineering' },
@@ -76,28 +79,38 @@ export default function SettingOptions({ session }) {
 
     const handleSaveProgram = async () => {
         try {
+            setIsCalculating(true);
             const finalCGPA = isManualCGPA ? Number(localCurrentCGPA) : null;
             const res = await updateUserSettings({
                 program: localProgram,
                 targetCGPA: Number(localTargetCGPA),
                 universityScale: Number(localUnivScale),
                 currentSem: Number(localCurrentSem),
-                currentCGPA: finalCGPA
+                currentCGPA: finalCGPA,
+                autoCalculateCGPA: !isManualCGPA
             });
 
             if (!res.success) {
                 alert(`Error: ${res.message}`);
                 return;
             }
-            
+
             if (setProgram) setProgram(localProgram);
             if (setTargetCGPA) setTargetCGPA(Number(localTargetCGPA));
             if (setUniversityScale) setUniversityScale(Number(localUnivScale));
             if (setCurrentSem) setCurrentSem(Number(localCurrentSem));
-            if (setCurrentCGPA) setCurrentCGPA(finalCGPA);
+            if (setCurrentCGPA) {
+                const newCGPA = res.updatedCGPA !== undefined ? res.updatedCGPA : finalCGPA;
+                setCurrentCGPA(newCGPA);
+                setLocalCurrentCGPA(newCGPA);
+            }
+            if (setSavedIsManualCGPA) setSavedIsManualCGPA(isManualCGPA);
+
             alert(`Academic details updated successfully!`);
         } catch (error) {
             alert("Failed to update academic details.");
+        } finally {
+            setIsCalculating(false);
         }
     }
 
@@ -312,7 +325,13 @@ export default function SettingOptions({ session }) {
                                 <p className='text-xs text-secondary'>Program data is used for curriculum mapping.</p>
                                 <button
                                     onClick={handleSaveProgram}
-                                    className='px-3 py-2 text-xs text-obsidian bg-primary rounded-xl font-medium'>Save
+                                    disabled={isCalculating}
+                                    className={`px-3 py-2 text-xs text-obsidian rounded-xl font-medium transition-all duration-200 ${isCalculating
+                                            ? 'bg-primary/50 cursor-not-allowed animate-pulse'
+                                            : 'bg-primary hover:bg-primary/90'
+                                        }`}
+                                >
+                                    {isCalculating ? "Calculating CGPA..." : "Save"}
                                 </button>
                             </div>
                         </div>
