@@ -1,6 +1,7 @@
 import { auth, signOut } from "@/auth";
 import { GraduationCap, LayoutDashboard, CalendarDays, FolderArchive, TrendingUp } from "lucide-react";
 import SidebarNav from "@/components/dashboard/SideBarNav";
+import MobileNav from "@/components/dashboard/MobileNav";
 import DashboardUIWrapper from "@/components/dashboard/DashboardUIWrapper";
 import { UserProvider } from "../Context/UserContext";
 import { getUserSettings } from "@/actions/userSettings";
@@ -24,6 +25,14 @@ export default async function DashboardLayout({ children }) {
 
     return (
         <div className="h-screen bg-obsidian flex font-sans text-primary">
+            {/* Mobile Navigation Drawer */}
+            <MobileNav
+                navLinks={navLinks}
+                user={session?.user}
+                signOutAction={handleSignOut}
+                settingsHref="/dashboard/settings"
+            />
+
             {/* sidebar */}
             <aside className="w-64 border-r border-white/8 bg-white/1 hidden md:flex flex-col">
 

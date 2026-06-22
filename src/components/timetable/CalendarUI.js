@@ -45,7 +45,7 @@ export default function CalendarUI({ weekStats }) {
   return (
     <div className="flex flex-col gap-6 w-full">
       {/* 1. The Calendar Row */}
-      <ul className='rounded-2xl bg-white/2 border border-white/8 backdrop-blur-2xl w-full min-h-10 min-w-40 p-2 grid grid-cols-7 gap-2 items-center'>
+      <ul className='rounded-2xl bg-white/2 border border-white/8 backdrop-blur-2xl w-full min-h-10 min-w-40 p-2 grid grid-cols-7 gap-1 sm:gap-2 items-center'>
         {weekStats.map((day) => {
           const isSelected = selectedDay === day.dayName;
           
@@ -53,7 +53,7 @@ export default function CalendarUI({ weekStats }) {
             <div
               key={day.dayName}
               onClick={() => setSelectedDay(day.dayName)}
-              className={`flex flex-col gap-1 items-center justify-center group rounded-lg transition-all duration-300 ease-in-out p-2 relative cursor-pointer ${
+              className={`flex flex-col gap-1 items-center justify-center group rounded-lg transition-all duration-300 ease-in-out p-1.5 sm:p-2 relative cursor-pointer ${
                 isSelected ? "bg-brand/15" : "hover:bg-white/5"
               }`}
             >
@@ -83,11 +83,11 @@ export default function CalendarUI({ weekStats }) {
 
       {/* Bar to show the Day and total classes - Attended/Missed/Cancelled */}
       <div className="flex flex-col gap-3">
-        <div className="flex gap-3 flex-row items-center justify-start">
-          <h2 className="text-lg font-semibold text-primary">
+        <div className="flex gap-2 sm:gap-3 flex-row flex-wrap items-center justify-start">
+          <h2 className="text-base sm:text-lg font-semibold text-primary">
             {fullDayNames[selectedDay]}
           </h2>
-          <ul className="flex flex-row items-center gap-3">
+          <ul className="flex flex-row flex-wrap items-center gap-2 sm:gap-3">
             <li className="flex flex-row gap-1 items-center text-[12px] text-success">
               <CircleCheck className="size-3" /> {selectedDayStats.attendedClasses}
             </li>
@@ -109,7 +109,7 @@ export default function CalendarUI({ weekStats }) {
         </div>
 
         {/*  Schedule View for the selected day */}
-        <div className="p-4 rounded-xl border border-white/10 bg-white/2 text-primary font-sans text-sm">
+        <div className="p-3 sm:p-4 rounded-xl border border-white/10 bg-white/2 text-primary font-sans text-sm">
           <p className="text-secondary mb-3 text-xs font-mono uppercase tracking-[0.2em]">
             Classes on {fullDayNames[selectedDay]}
           </p>

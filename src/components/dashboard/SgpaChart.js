@@ -39,8 +39,8 @@ export default function SgpaChart() {
     }, []);
 
     return (
-        <div className="w-full h-[300px] bg-white/2 border border-white/8 rounded-2xl p-6 relative hover:shadow-2xl drop-shadow-brand group hover:-translate-y-1 transition-transform duration-300">
-            <h3 className="text-secondary text-sm font-medium uppercase tracking-wider mb-6">
+        <div className="w-full h-[250px] md:h-[300px] bg-white/2 border border-white/8 rounded-2xl p-4 md:p-6 relative hover:shadow-2xl drop-shadow-brand group hover:-translate-y-1 transition-transform duration-300">
+            <h3 className="text-secondary text-sm font-medium uppercase tracking-wider mb-4 md:mb-6">
                 SGPA Trajectory
             </h3>
 

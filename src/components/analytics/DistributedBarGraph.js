@@ -5,11 +5,12 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsive
 const CustomTooltip = ({ active, payload, label }) => {
   if (active && payload && payload.length) {
     return (
-      <div className="rounded-lg border border-white/8 bg-obsidian/90 p-3 shadow-xl backdrop-blur-md">
-        <p className="mb-1 text-xs text-secondary">{label}</p>
+      <div className="rounded-lg border border-white/8 bg-obsidian/90 p-2 md:p-3 shadow-xl backdrop-blur-md max-w-[180px] md:max-w-none">
+        <p className="mb-1 text-[10px] md:text-xs text-secondary truncate">{label}</p>
         {payload.map((entry) => (
-          <p key={entry.dataKey} className="text-sm font-medium text-primary">
-            {entry.name}: <span className="font-mono">{entry.value}</span>
+          <p key={entry.dataKey} className="text-xs md:text-sm font-medium text-primary flex justify-between gap-3">
+            <span className="truncate">{entry.name}:</span>
+            <span className="font-mono font-semibold">{entry.value}</span>
           </p>
         ))}
       </div>
@@ -37,61 +38,63 @@ export default function DistributedBarGraph({ data }) {
         <p className="text-sm text-secondary">Minor 1, Minor 2, and End Sem scores across all subjects</p>
       </div>
 
-      <div className="min-h-0 w-full flex-1">
-        <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.1)" />
+      <div className="min-h-0 w-full flex-1 overflow-x-auto scrollbar-thin">
+        <div className="h-full min-w-[650px] md:min-w-0">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.1)" />
 
-            <XAxis
-              dataKey="subject"
-              axisLine={false}
-              tickLine={false}
-              tick={{ fill: "rgb(156, 163, 175)", fontSize: 12 }}
-              dy={10}
-              tickFormatter={truncateText}
-            />
+              <XAxis
+                dataKey="subject"
+                axisLine={false}
+                tickLine={false}
+                tick={{ fill: "rgb(156, 163, 175)", fontSize: 12 }}
+                dy={10}
+                tickFormatter={truncateText}
+              />
 
-            <YAxis
-              axisLine={false}
-              tickLine={false}
-              tick={{ fill: "rgb(156, 163, 175)", fontSize: 12 }}
-              domain={[0, 100]}
-            />
+              <YAxis
+                axisLine={false}
+                tickLine={false}
+                tick={{ fill: "rgb(156, 163, 175)", fontSize: 12 }}
+                domain={[0, 100]}
+              />
 
-            <Tooltip
-              content={<CustomTooltip />}
-              cursor={{ fill: "rgba(255,255,255,0.04)" }}
-            />
+              <Tooltip
+                content={<CustomTooltip />}
+                cursor={{ fill: "rgba(255,255,255,0.04)" }}
+              />
 
-            <Legend
-              wrapperStyle={{ paddingTop: "20px" }}
-              iconType="circle"
-              formatter={(value) => <span style={{ color: "rgb(248, 249, 252)" }}>{value}</span>}
-            />
+              <Legend
+                wrapperStyle={{ paddingTop: "20px" }}
+                iconType="circle"
+                formatter={(value) => <span style={{ color: "rgb(248, 249, 252)" }}>{value}</span>}
+              />
 
-            <Bar
-              dataKey="minor1"
-              name="Minor 1"
-              fill="rgb(45, 91, 255)"
-              radius={[4, 4, 0, 0]}
-              maxBarSize={36}
-            />
-            <Bar
-              dataKey="minor2"
-              name="Minor 2"
-              fill="rgb(16, 185, 129)"
-              radius={[4, 4, 0, 0]}
-              maxBarSize={36}
-            />
-            <Bar
-              dataKey="endsem"
-              name="End Semester"
-              fill="rgb(245, 158, 11)"
-              radius={[4, 4, 0, 0]}
-              maxBarSize={36}
-            />
-          </BarChart>
-        </ResponsiveContainer>
+              <Bar
+                dataKey="minor1"
+                name="Minor 1"
+                fill="rgb(45, 91, 255)"
+                radius={[4, 4, 0, 0]}
+                maxBarSize={36}
+              />
+              <Bar
+                dataKey="minor2"
+                name="Minor 2"
+                fill="rgb(16, 185, 129)"
+                radius={[4, 4, 0, 0]}
+                maxBarSize={36}
+              />
+              <Bar
+                dataKey="endsem"
+                name="End Semester"
+                fill="rgb(245, 158, 11)"
+                radius={[4, 4, 0, 0]}
+                maxBarSize={36}
+              />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
       </div>
     </div>
   );

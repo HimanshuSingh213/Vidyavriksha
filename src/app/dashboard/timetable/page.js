@@ -4,7 +4,7 @@ import CalendarWeek from '@/components/timetable/calendarWeek';
 export default function page() {
 
   return (
-    <div className='min-h-full bg-obsidian p-6 md:p-10 font-sans'>
+    <div className='min-h-full bg-obsidian p-4 md:p-10 font-sans'>
       <div className='flex flex-col gap-6'>
         {/* Week */}
         <div>

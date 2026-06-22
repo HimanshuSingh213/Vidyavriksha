@@ -31,6 +31,6 @@ const examSchema = new Schema({
 }, { timestamps: true });
 
 // Indexing by date allows MongoDB to sort your upcoming exams incredibly fast
-examSchema.index({ userEmail: 1, date: 1 });
+examSchema.index({ userId: 1, date: 1 });
 
 export const Exam = mongoose.models.Exam || mongoose.model('Exam', examSchema);

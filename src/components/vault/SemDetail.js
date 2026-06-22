@@ -40,13 +40,13 @@ export function SemDetail(semData) {
             <motion.div
                 whileTap={{ scale: 0.99 }}
                 onClick={() => setIsSemOpen(!isSemOpen)}
-                className={`rounded-2xl backdrop-blur-lg py-3 px-6 border  flex justify-between items-center transition duration-200
+                className={`rounded-2xl backdrop-blur-lg py-3 px-4 sm:px-6 border  flex justify-between items-center transition duration-200
                              ${isSemOpen ? "bg-brand/5 border-brand/20" : "bg-primary/2 border-secondary/20"}`}>
                 {/* Left */}
                 <div className='left flex gap-2 justify-center items-center'>
                     <div><ChevronDown className={`size-4 transition duration-200 ${isSemOpen ? "rotate-180" : "rotate-0"}`} /></div>
                     <div>
-                        <h2 className="text-primary font-semibold text-lg">Semester {semData.semData.semester}</h2>
+                        <h2 className="text-primary font-semibold text-base sm:text-lg">Semester {semData.semData.semester}</h2>
                         <p className="text-secondary text-[10px] font-sans">{subjectNum} subjects · {creditsNum} credits</p>
                     </div>
                 </div>
@@ -64,7 +64,7 @@ export function SemDetail(semData) {
                         initial={{ opacity: 0, height: 0 }}
                         animate={{ opacity: 1, height: "auto" }}
                         exit={{ opacity: 0, height: 0 }}
-                        className="mt-2 flex flex-col gap-2 pl-4 overflow-hidden"
+                        className="mt-2 flex flex-col gap-2 pl-2 sm:pl-4 overflow-hidden"
                     >
                     {semSubjectData.length > 0 ? (
                         semSubjectData.map((subject, index) => {
@@ -76,13 +76,13 @@ export function SemDetail(semData) {
                                 initial={{opacity: 0, y: -15}}
                                 animate={{opacity: 1, y: 0}}
                                 exit={{opacity: 0, y: -15}}
-                                key={subject.id || index} className="p-4 bg-white/2 border border-white/5 rounded-xl flex flex-col gap-3">
-                                    <div className="flex justify-between items-start">
+                                key={subject.id || index} className="p-3 sm:p-4 bg-white/2 border border-white/5 rounded-xl flex flex-col gap-3">
+                                    <div className="flex flex-col sm:flex-row justify-between items-start gap-2">
                                         <div>
                                             <h3 className="text-primary text-sm font-medium">{subject.name}</h3>
                                             <p className="text-secondary text-[10px] uppercase font-mono mt-0.5">{subject.code} • {subject.credits} Credits</p>
                                         </div>
-                                        <div className="flex gap-4">
+                                        <div className="flex flex-wrap gap-x-4 gap-y-1">
                                             <div className="text-center">
                                                 <p className="text-secondary text-[8px] uppercase">Minor 1</p>
                                                 <p className="text-primary text-xs font-mono">{subject.marks?.minor1 ?? '-'}</p>

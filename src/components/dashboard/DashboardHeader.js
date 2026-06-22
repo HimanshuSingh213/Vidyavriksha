@@ -78,7 +78,7 @@ export default function DashboardHeader({ userName }) {
                         ease: [0.3, 1, 0.4, 1],
                     }}
                 >
-                    <h1 className={`${spaceGrotesk.className} text-xl font-bold tracking-tight`}>{heading}</h1>
+                    <h1 className={`${spaceGrotesk.className} text-base md:text-lg font-bold tracking-tight`}>{heading}</h1>
                     <p className="text-secondary text-xs font-sans">{subHeading}</p>
                 </motion.div>
             </AnimatePresence>

@@ -17,7 +17,7 @@ const CustomTooltip = ({ active, payload, label }) => {
   return null;
 };
 
-export default function SGPAProgressionChart({ data, targetCgpa = 8.0 }) {
+export default function SGPAProgressionChart({ data, targetCgpa = 8.0, dbCgpa }) {
   if (!Array.isArray(data) || data.length === 0) {
     return (
       <div className="w-full rounded-2xl border border-white/8 bg-white/2 p-6 text-center text-sm text-secondary backdrop-blur-xl">
@@ -26,17 +26,20 @@ export default function SGPAProgressionChart({ data, targetCgpa = 8.0 }) {
     );
   }
 
-  // 1. Calculate Statistics (Ignoring 0 values for uncompleted semesters)
-  const validSgpas = data.filter((d) => d.sgpa > 0).map((d) => d.sgpa);
+  // 1. Calculate Statistics (Ignoring ongoing/uncompleted semesters)
+  const validSgpas = data.filter((d) => d.status === "Completed" && d.sgpa > 0).map((d) => d.sgpa);
   
   const highestSgpa = validSgpas.length > 0 ? Math.max(...validSgpas).toFixed(2) : "N/A";
   const lowestSgpa = validSgpas.length > 0 ? Math.min(...validSgpas).toFixed(2) : "N/A";
   
   const totalSgpa = validSgpas.reduce((sum, val) => sum + val, 0);
-  const currentCgpa = validSgpas.length > 0 ? (totalSgpa / validSgpas.length).toFixed(2) : "0.00";
+  const displayCgpa = dbCgpa !== undefined && dbCgpa !== null && dbCgpa > 0
+    ? Number(dbCgpa).toFixed(2)
+    : (validSgpas.length > 0 ? (totalSgpa / validSgpas.length).toFixed(2) : "0.00");
 
   // 2. Helper function for color coding the semester blocks
-  const getScoreColor = (sgpa) => {
+  const getScoreColor = (sgpa, status) => {
+    if (status === "Ongoing") return "border-white/8 bg-white/4 text-secondary";
     if (sgpa === 0) return "border-white/8 bg-white/4 text-secondary";
     if (sgpa >= 8.0) return "border-success/20 bg-success/10 text-success";
     if (sgpa >= 6.0) return "border-warning/20 bg-warning/10 text-warning";
@@ -50,7 +53,7 @@ export default function SGPAProgressionChart({ data, targetCgpa = 8.0 }) {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
         <div className="rounded-xl border border-brand/20 bg-brand/10 p-4">
           <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-brand">Current CGPA</p>
-          <p className="text-2xl font-bold text-primary">{currentCgpa}</p>
+          <p className="text-2xl font-bold text-primary">{displayCgpa}</p>
         </div>
         <div className="rounded-xl border border-white/8 bg-white/4 p-4">
           <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-secondary">Target CGPA</p>
@@ -106,7 +109,7 @@ export default function SGPAProgressionChart({ data, targetCgpa = 8.0 }) {
         <h4 className="mb-4 text-sm font-semibold text-primary">Semester Breakdown</h4>
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
           {data.map((item, index) => {
-            const colorClass = getScoreColor(item.sgpa);
+            const colorClass = getScoreColor(item.sgpa, item.status);
             return (
               <div 
                 key={index} 

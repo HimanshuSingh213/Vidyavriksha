@@ -14,22 +14,22 @@ export default function LoginPage() {
             <div className="absolute bottom-[-10%] right-[-10%] w-96 h-96 bg-blue-500/10 blur-[120px] rounded-full pointer-events-none" />
 
             {/* The Glassmorphism Card */}
-            <div className="w-full max-w-md p-10 rounded-4xl bg-white/3 backdrop-blur-2xl border border-white/8 shadow-[0_8px_32px_0_rgba(0,0,0,0.4)] relative overflow-hidden z-10 animate-in fade-in zoom-in-95 duration-500">
+            <div className="w-full max-w-md p-6 sm:p-10 mx-4 sm:mx-0 rounded-3xl sm:rounded-4xl bg-white/3 backdrop-blur-2xl border border-white/8 shadow-[0_8px_32px_0_rgba(0,0,0,0.4)] relative overflow-hidden z-10 animate-in fade-in zoom-in-95 duration-500">
                 
                 {/* Inner subtle top-glow for the card border */}
                 <div className="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 h-px bg-linear-to-r from-transparent via-brand/50 to-transparent"></div>
                 <div className="absolute top-0 left-1/2 -translate-x-1/2 w-48 h-48 bg-brand/10 blur-[80px] rounded-full pointer-events-none"></div>
 
                 {/* Header Section */}
-                <div className="relative z-10 text-center mb-10 mt-2">
+                <div className="relative z-10 text-center mb-6 sm:mb-10 mt-2">
                     {/* Logo/Icon Placeholder (Optional: makes it look more complete) */}
-                    <div className="w-16 h-16 mx-auto mb-6 bg-linear-to-br from-white/10 to-white/5 border border-white/10 rounded-2xl flex items-center justify-center shadow-inner">
-                        <svg className="w-8 h-8 text-white/80" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <div className="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-4 sm:mb-6 bg-linear-to-br from-white/10 to-white/5 border border-white/10 rounded-2xl flex items-center justify-center shadow-inner">
+                        <svg className="w-6 h-6 sm:w-8 sm:h-8 text-white/80" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                         </svg>
                     </div>
 
-                    <h1 className="text-4xl font-extrabold bg-linear-to-br from-white via-white/90 to-white/40 bg-clip-text text-transparent tracking-tight mb-3">
+                    <h1 className="text-3xl sm:text-4xl font-extrabold bg-linear-to-br from-white via-white/90 to-white/40 bg-clip-text text-transparent tracking-tight mb-3">
                         Vidyavriksha
                     </h1>
                     <p className="text-secondary/80 text-sm font-medium tracking-wide">
@@ -56,7 +56,7 @@ export default function LoginPage() {
                 </button>
 
                 {/* Footer terms / privacy placeholder */}
-                <p className="text-center text-xs text-secondary/50 mt-8 font-medium">
+                <p className="text-center text-xs text-secondary/50 mt-6 sm:mt-8 font-medium">
                     By securely signing in, you agree to our <br className="hidden sm:block"/> Terms of Service and Privacy Policy.
                 </p>
             </div>

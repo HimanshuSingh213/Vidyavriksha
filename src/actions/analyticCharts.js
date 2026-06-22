@@ -117,7 +117,11 @@ export const fetchDistributedBarGraph = async (SemId) => {
                 semester: SemId
             }).lean();
 
-            return rawSubjects.map(sub => ({
+            const nonLabSubjects = rawSubjects.filter(
+                sub => !sub.name.toLowerCase().includes("lab")
+            );
+
+            return nonLabSubjects.map(sub => ({
                 subject: sub.name,
                 minor1: sub.marks?.minor1 || 0,
                 minor2: sub.marks?.minor2 || 0,
@@ -151,6 +155,7 @@ export const fetchSGPAProgressionChart = async () => {
             return rawSemesters.map(sem => ({
                 semester: `Sem ${sem.semester}`,
                 sgpa: sem.sgpa || 0,
+                status: sem.status || "Ongoing"
             }));
         },
         [`sgpa-progression-${userId}`],

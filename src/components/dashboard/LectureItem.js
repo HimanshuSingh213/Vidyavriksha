@@ -80,7 +80,7 @@ export default function LectureItem({
 
 
     return (
-        <div className={`p-4 border rounded-xl shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] col-span-1 transition-all duration-300
+        <div className={`p-3 md:p-4 border rounded-xl shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] col-span-1 transition-all duration-300
             ${isOngoing ? "border-brand/30 bg-brand/5" : ""}
             ${isCompleted ? "border-white/10 bg-white/2 opacity-50 hover:opacity-100" : ""}
             ${timeStatus === "Upcoming" ? "border-white/10 bg-white/2" : ""}
@@ -103,7 +103,7 @@ export default function LectureItem({
             {/* Main Content Area */}
             <div className="flex flex-row justify-between items-center w-full">
                 <div>
-                    <p className="font-medium">{subject}</p>
+                    <p className="font-medium text-sm md:text-base">{subject}</p>
                     <p className="text-xs text-secondary mt-1">{code} • {teacher}</p>
                 </div>
 

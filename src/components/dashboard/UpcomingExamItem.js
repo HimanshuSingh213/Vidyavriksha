@@ -38,16 +38,16 @@ export default function UpcomingExamItem({
     }
 
     return (
-        <div className="flex justify-between items-center p-4 mb-3 border border-white/5 bg-white/2 rounded-xl hover:bg-white/4 transition-colors">
+        <div className="flex justify-between items-center p-3 md:p-4 mb-2 md:mb-3 border border-white/5 bg-white/2 rounded-xl hover:bg-white/4 transition-colors">
 
-            <div>
-                <h4 className="text-primary font-medium tracking-wide">{subject}</h4>
+            <div className="min-w-0 flex-1">
+                <h4 className="text-primary font-medium tracking-wide text-sm md:text-base truncate">{subject}</h4>
                 <p className="text-secondary text-xs font-mono mt-1">
                     {code} &middot; {examType}
                 </p>
             </div>
 
-            <div className={`px-3 py-1 rounded-lg border text-xs font-mono font-medium tracking-wider ${badgeStyle}`}>
+            <div className={`px-3 py-1 rounded-lg border text-xs font-mono font-medium tracking-wider shrink-0 whitespace-nowrap ${badgeStyle}`}>
                 {badgeText}
             </div>
 

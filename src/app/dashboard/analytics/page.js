@@ -69,7 +69,7 @@ async function AnalyticsPage({ searchParams }) {
 
   return (
     <>
-      <div className='p-6 md:p-10'>
+      <div className='p-4 md:p-10'>
 
         {/* Toast State */}
         <AnalyticsToast error={serverError} />
@@ -77,9 +77,9 @@ async function AnalyticsPage({ searchParams }) {
 
         <div>
           {/* Sem Selection */}
-          <div className='flex justify-start items-center rounded-xl bg-primary/3 border-2 border-primary/5 px-4 py-5'>
-            <div className='flex justify-center items-center gap-4'>
-              <p className='text-sm text-primary font-medium'>Select Semester:</p>
+          <div className='flex justify-start items-center rounded-xl bg-primary/3 border-2 border-primary/5 px-3 py-4 sm:px-4 sm:py-5'>
+            <div className='flex justify-center items-center gap-2 sm:gap-4'>
+              <p className='text-xs sm:text-sm text-primary font-medium'>Select Semester:</p>
 
               <SemesterDropdown totalSems={totalSems} selectedSem={selectedSem} />
             </div>

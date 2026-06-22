@@ -62,7 +62,7 @@ export default function ModernLectureItem({
     const isOngoing = isTodayLecture && currentTime >= startTime && currentTime < endTime;
 
     return (
-        <div className={`group relative flex items-center p-4 mb-3 rounded-2xl border transition-all duration-500 overflow-hidden
+        <div className={`group relative flex flex-col sm:flex-row items-start sm:items-center p-3 md:p-4 mb-3 rounded-2xl border transition-all duration-500 overflow-hidden
             ${isOngoing ? "bg-brand/5 border-brand/60 shadow-[0_0_20px_rgba(var(--brand-rgb),0.1)] ring-1 ring-brand/20" : "bg-white/2 border-white/5 hover:border-white/20"}
         `}>
             {/* Background Glow for Ongoing */}
@@ -71,13 +71,13 @@ export default function ModernLectureItem({
             )}
 
             {/* left section */}
-            <div className="flex flex-col items-center justify-center min-w-[70px] pr-4 border-r border-white/10">
+            <div className="flex flex-col items-center justify-center min-w-[70px] pr-4 pb-3 sm:pb-0 border-b sm:border-b-0 sm:border-r border-white/10 w-full sm:w-auto">
             <div className="flex flex-row items-center gap-2">
-                 <span className="text-lg font-mono font-bold text-primary/80 tracking-tighter">
+                 <span className="text-base sm:text-lg font-mono font-bold text-primary/80 tracking-tighter">
                     {formatTime(startTime)}
                 </span>
                 -
-                <span className="text-lg font-mono font-bold text-primary/80 tracking-tighter">
+                <span className="text-base sm:text-lg font-mono font-bold text-primary/80 tracking-tighter">
                     {formatTime(endTime)}
                 </span>
             </div>
@@ -90,7 +90,7 @@ export default function ModernLectureItem({
             </div>
 
             {/* content Section */}
-            <div className="grow pl-6">
+            <div className="grow pl-0 sm:pl-6 pt-3 sm:pt-0">
                 <div className="flex items-center gap-2 mb-1.5">
                     {displayType === "Lab" ? (
                         <FlaskConical size={12} className="text-brand" />
@@ -102,11 +102,11 @@ export default function ModernLectureItem({
                     </span>
                 </div>
                 
-                <h3 className="text-lg font-semibold font-sans text-primary tracking-tight leading-tight">
+                <h3 className="text-base sm:text-lg font-semibold font-sans text-primary tracking-tight leading-tight">
                     {subject}
                 </h3>
                 
-                <div className="flex items-center gap-2 mt-1">
+                <div className="flex items-center flex-wrap gap-1 sm:gap-2 mt-1">
                     <span className="text-xs font-mono text-secondary/80">{code}</span>
                     <span className="text-[10px] text-white/10">•</span>
                     <span className="text-xs text-secondary/80">{room}</span>
@@ -116,7 +116,7 @@ export default function ModernLectureItem({
             </div>
 
             {/* right section */}
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 sm:gap-3 mt-3 sm:mt-0 w-full sm:w-auto justify-end">
                 {/* Status Badge */}
                 {optimisticStatus && (
                     <div className={`hidden md:flex px-2 py-1 rounded-full text-[10px] font-semibold uppercase border

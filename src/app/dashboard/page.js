@@ -44,23 +44,23 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-obsidian text-primary p-6 md:p-10 font-sans">
+    <div className="min-h-screen bg-obsidian text-primary p-4 md:p-10 font-sans">
 
       {/* BENTO GRID LAYOUT */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
 
         {/* The Headline Card */}
-        <div className="md:col-span-2 bg-white/2 backdrop-blur-xl border border-white/8 rounded-2xl p-8 relative overflow-hidden hover:-translate-y-1 transition duration-300 hover:shadow-xl shadow-brand/5 ease-in-out">
+        <div className="md:col-span-2 bg-white/2 backdrop-blur-xl border border-white/8 rounded-2xl p-5 md:p-8 relative overflow-hidden hover:-translate-y-1 transition duration-300 hover:shadow-xl shadow-brand/5 ease-in-out">
           <div className="absolute top-0 right-0 w-64 h-64 bg-brand/10 blur-[100px] rounded-full pointer-events-none"></div>
 
           <h2 className="text-secondary text-sm font-medium uppercase tracking-wider mb-2">Current Trajectory</h2>
-          <div className="flex items-end gap-4">
+          <div className="flex items-end gap-2 md:gap-4">
             {/* Monospace font for data points */}
-            <span className="text-6xl font-mono font-bold tracking-tighter text-white">{currentCGPA}</span>
-            <span className="text-xl text-secondary mb-2 font-mono">CGPA</span>
+            <span className="text-4xl md:text-6xl font-mono font-bold tracking-tighter text-white">{currentCGPA}</span>
+            <span className="text-base md:text-xl text-secondary mb-2 font-mono">CGPA</span>
           </div>
 
-          <div className="mt-6 flex gap-4">
+          <div className="mt-6 flex flex-wrap gap-3 md:gap-4">
             <div className="px-3 py-1 bg-success/10 border border-success/20 rounded text-success text-xs font-mono">
               Target: {targetCGPA}
             </div>
@@ -76,16 +76,16 @@ export default function DashboardPage() {
       </div>
 
       {/* Today's Schedule */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mt-4">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 md:gap-6 mt-3 md:mt-4">
 
-        <div className="md:col-span-2 bg-white/2 backdrop-blur-xl border border-white/8 rounded-2xl hover:shadow-xl shadow-brand/5 p-6 mt-2 hover:-translate-y-1 transition duration-300 ease-in-out">
+        <div className="md:col-span-2 bg-white/2 backdrop-blur-xl border border-white/8 rounded-2xl hover:shadow-xl shadow-brand/5 p-4 md:p-6 mt-2 hover:-translate-y-1 transition duration-300 ease-in-out">
           <header className="flex flex-row gap-2 justify-start items-center mb-4">
             {<Clock size={18} className="text-brand" />}
             <h2 className="text-secondary text-sm font-medium uppercase tracking-wider">Todays Schedule</h2>
           </header>
 
           {/* Subjects - Schedule Wise */}
-          <div className="grid md:grid-cols-1 grid-flow-row grid-cols-3 gap-4 w-full">
+          <div className="grid grid-cols-1 gap-4 w-full">
             {todaySchedule.length === 0 ? (
               <p className="text-secondary text-sm font-mono text-center py-4">No classes scheduled for today.</p>
             ) : (
@@ -108,13 +108,13 @@ export default function DashboardPage() {
         </div>
 
         {/* Upcoming Exams */}
-        <div className="md:col-span-2 bg-white/2 backdrop-blur-xl border border-white/8 hover:shadow-xl shadow-brand/5 rounded-2xl p-6 mt-2 hover:-translate-y-1 transition duration-300">
+        <div className="md:col-span-2 bg-white/2 backdrop-blur-xl border border-white/8 hover:shadow-xl shadow-brand/5 rounded-2xl p-4 md:p-6 mt-2 hover:-translate-y-1 transition duration-300">
           <header className="flex flex-row gap-2 justify-start items-center mb-4">
             {<BookOpen size={18} className="text-brand" />}
             <h2 className="text-secondary text-sm font-medium uppercase tracking-wider">Upcoming Exams</h2>
           </header>
 
-          <div className="grid md:grid-cols-1 grid-flow-row grid-cols-3 w-full">
+          <div className="grid grid-cols-1 w-full">
             {upcomingExams.length === 0 ? (
               <p className="text-secondary text-sm font-mono text-center py-4">No upcoming exams found.</p>
             ) : (

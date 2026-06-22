@@ -11,19 +11,19 @@ export default function DashboardUIWrapper({ session, children }) {
     const effectiveName = displayName || session?.user?.name;
 
     if (isSettingsPage) {
-        return <div className="min-h-full bg-obsidian p-6 md:p-10 font-sans">
+        return <div className="min-h-full bg-obsidian p-4 md:p-10 font-sans">
             {children}
         </div>;
     }
 
     return (
         <>
-            <header className="flex justify-between items-center px-6 py-3 md:px-10 mt-1 font-sans border-b border-b-secondary/15">
+            <header className="sticky top-0 bg-obsidian/90 backdrop-blur-md z-30 flex justify-between items-center pl-14 pr-4 py-4 md:px-10 md:py-3 font-sans border-b border-b-secondary/15">
                 <DashboardHeader userName={effectiveName} />
 
                 <div className="flex flex-row items-center gap-2">
-                    <div className="max-w-60">
-                        <p className="text-center">{effectiveName}</p>
+                    <div className="max-w-60 hidden sm:block">
+                        <p className="text-center truncate">{effectiveName}</p>
                         {/* <div className="flex flex-row justify-center items-center gap-1 text-xs text-success max-w-40 truncate line-clamp-1">
                             <p className="text-[10px]">Btech CSE-DS</p>
                             <span className="text-[10px]">•</span>

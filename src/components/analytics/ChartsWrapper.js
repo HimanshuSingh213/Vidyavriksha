@@ -8,7 +8,7 @@ import { useUser } from '@/app/Context/UserContext'
 
 
 export default function ChartsWrapper({stackedData, radialData, distributedGraphData, sgpaProgressionData}) {
-    const { targetCGPA } = useUser();
+    const { targetCGPA, currentCGPA } = useUser();
 
     return (
         <div>
@@ -29,7 +29,7 @@ export default function ChartsWrapper({stackedData, radialData, distributedGraph
 
             {/* SGPA Progression Chart */}
             <div className='mt-5'>
-                <SGPAProgressionChart data={sgpaProgressionData} targetCgpa={targetCGPA} />
+                <SGPAProgressionChart data={sgpaProgressionData} targetCgpa={targetCGPA} dbCgpa={currentCGPA} />
             </div>
         </div>
     )

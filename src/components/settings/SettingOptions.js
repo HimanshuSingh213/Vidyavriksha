@@ -124,7 +124,7 @@ export default function SettingOptions({ session }) {
                 className='mx-auto max-w-4xl'
             >
                 <div className='py-4'>
-                    <ul className='p-4 border-b border-b-secondary/20 flex flex-row gap-8 items-center justify-start'>
+                    <ul className='p-3 sm:p-4 border-b border-b-secondary/20 flex flex-row gap-4 sm:gap-8 items-center justify-start'>
                         {/* General Tab */}
                         <li
                             onClick={() => setActive(1)}
@@ -189,9 +189,9 @@ export default function SettingOptions({ session }) {
 
 
                 {active === 1 && (
-                    <div className='space-y-8 mt-8'>
+                    <div className='space-y-6 sm:space-y-8 mt-6 sm:mt-8'>
                         <div className='flex flex-col rounded-2xl overflow-hidden border border-primary/15'>
-                            <div className='flex flex-col gap-1 justify-center items-start p-6 bg-obsidian/10'>
+                            <div className='flex flex-col gap-1 justify-center items-start p-4 sm:p-6 bg-obsidian/10'>
                                 <h1 className='text-primary text-lg font-medium'>Display Name</h1>
                                 <h3 className='text-secondary text-sm'>This is your name as it appears on the dashboard.</h3>
                                 <input
@@ -199,7 +199,7 @@ export default function SettingOptions({ session }) {
                                     onChange={(e) => setLocalName(e.target.value)}
                                     type="text"
                                     maxLength={32}
-                                    className='max-w-xl w-[320px] text-sm px-3 py-2 h-8 mt-3 bg-primary/5 outline outline-primary/10 focus:outline-primary/25 transition duration-200 ease-in-out rounded-lg' />
+                                    className='max-w-xl w-full text-sm px-3 py-2 h-8 mt-3 bg-primary/5 outline outline-primary/10 focus:outline-primary/25 transition duration-200 ease-in-out rounded-lg' />
                             </div>
                             <div className='bg-primary/5 px-4 py-3 flex flex-row justify-between items-center'>
                                 <p className='text-xs text-secondary'>Please use 32 characters at maximum.</p>
@@ -210,31 +210,31 @@ export default function SettingOptions({ session }) {
                             </div>
                         </div>
                         <div className='flex flex-col rounded-2xl overflow-hidden border border-primary/15'>
-                            <div className='flex flex-col gap-1 justify-center items-start p-6 bg-obsidian/10'>
+                            <div className='flex flex-col gap-1 justify-center items-start p-4 sm:p-6 bg-obsidian/10'>
                                 <h1 className='text-primary text-lg font-medium'>Email Address</h1>
                                 <h3 className='text-secondary text-sm'>The email address associated with your account.</h3>
                                 <input
                                     value={session?.user?.email}
                                     disabled={true}
-                                    className='max-w-xl w-[320px] text-sm px-3 py-2 h-8 mt-3 bg-primary/5 outline outline-primary/10 focus:outline-primary/25 transition duration-200 ease-in-out rounded-lg text-secondary' />
+                                    className='max-w-xl w-full text-sm px-3 py-2 h-8 mt-3 bg-primary/5 outline outline-primary/10 focus:outline-primary/25 transition duration-200 ease-in-out rounded-lg text-secondary' />
                             </div>
                             <div className='bg-primary/5 px-4 py-3 flex flex-row justify-between items-center'>
                                 <p className='text-xs text-secondary'>Email is managed via your Google Account.</p>
                             </div>
                         </div>
                         <div className='flex flex-col rounded-2xl overflow-hidden border border-primary/15'>
-                            <div className='flex flex-col gap-1 justify-center items-start p-6 bg-obsidian/10'>
+                            <div className='flex flex-col gap-1 justify-center items-start p-4 sm:p-6 bg-obsidian/10'>
                                 <h1 className='text-primary text-lg font-medium'>Academic Identity</h1>
                                 <h3 className='text-secondary text-sm'>Your institutional program details.</h3>
 
-                                <div className='grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 w-full max-w-2xl mt-8'>
+                                <div className='grid grid-cols-1 md:grid-cols-2 gap-x-4 sm:gap-x-8 gap-y-4 sm:gap-y-6 w-full max-w-2xl mt-6 sm:mt-8'>
                                     {/* Degree Program */}
                                     <div className='flex flex-col justify-center items-start'>
                                         <p className='text-xs text-secondary'>Degree Program</p>
                                         <select
                                             value={localProgram}
                                             onChange={(e) => setLocalProgram(e.target.value)}
-                                            className='max-w-xl w-[320px] text-sm px-3 py-1.5 h-8 mt-1 bg-primary/5 outline outline-primary/10 focus:outline-primary/25 transition duration-200 ease-in-out rounded-lg text-primary appearance-none cursor-pointer'
+                                            className='max-w-xl w-full text-sm px-3 py-1.5 h-8 mt-1 bg-primary/5 outline outline-primary/10 focus:outline-primary/25 transition duration-200 ease-in-out rounded-lg text-primary appearance-none cursor-pointer'
                                         >
                                             {courses.map((course) => (
                                                 <option key={course.label} value={course.value} className='bg-obsidian text-secondary'>
@@ -339,7 +339,7 @@ export default function SettingOptions({ session }) {
                 )}
 
                 {active === 2 && (
-                    <div className='flex md:flex-row gap-12 space-y-12 '>
+                    <div className='flex flex-col md:flex-row gap-6 md:gap-12'>
                         {/* Sem Selection */}
                         <div className='min-w-56'>
                             <p className='text-[10px] text-secondary p-3 font-semibold'>SEMESTERS</p>
