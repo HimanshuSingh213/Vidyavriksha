@@ -56,7 +56,19 @@ export async function getSems() {
                 userId,
             }).sort({ semester: 1 }).lean();
 
-            return JSON.parse(JSON.stringify(TotalSemesters));
+            // Fetch subject credits for each semester in parallel to get accurate weights
+            const semestersWithCredits = await Promise.all(
+                TotalSemesters.map(async (sem) => {
+                    const subjects = await subject.find({ userId, semester: sem._id }).lean();
+                    const credits = subjects.reduce((sum, sub) => sum + (Number(sub.credits) || 0), 0);
+                    return {
+                        ...sem,
+                        credits: credits > 0 ? credits : 20 // Default to 20 if no subjects are added yet
+                    };
+                })
+            );
+
+            return JSON.parse(JSON.stringify(semestersWithCredits));
         },
         [`sems-${userId}`],
         { tags: [`analytics-${userId}`], revalidate: 86400 }

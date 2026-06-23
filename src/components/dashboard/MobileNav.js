@@ -3,8 +3,9 @@ import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import { Menu, X, GraduationCap, Settings, LogOut } from "lucide-react";
+import { Menu, X, GraduationCap, Settings, LogOut, Sliders, Github } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import LiquidTooltip from "@/components/rareui/LiquidTooltip";
 
 export default function MobileNav({ navLinks, user, signOutAction, settingsHref }) {
     const [isOpen, setIsOpen] = useState(false);
@@ -113,6 +114,15 @@ export default function MobileNav({ navLinks, user, signOutAction, settingsHref 
                                     </div>
                                 )}
 
+                                <Link
+                                    title="GPA Simulator"
+                                    href="/dashboard/simulator"
+                                    className={`w-full h-8 py-2 px-3 flex items-center gap-2 text-xs font-semibold hover:bg-white/5 border border-white/8 rounded-lg transition-all duration-300 ease-in-out hover:text-primary ${pathname === "/dashboard/simulator" ? "bg-brand/10 border-brand/20 text-brand font-bold" : "text-secondary"}`}
+                                >
+                                    <Sliders size={18} />
+                                    <span>GPA Simulator</span>
+                                </Link>
+
                                 {/* Settings & Logout */}
                                 <div className="flex flex-row gap-2 w-full">
                                     <Link
@@ -132,6 +142,20 @@ export default function MobileNav({ navLinks, user, signOutAction, settingsHref 
                                             <LogOut size={18} />
                                         </button>
                                     </form>
+                                </div>
+
+                                <div className="flex justify-center items-center pt-2 border-t border-white/5">
+                                    <LiquidTooltip text="GitHub: HimanshuSingh213" placement="top">
+                                        <a
+                                            href="https://github.com/HimanshuSingh213"
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="flex items-center gap-1.5 text-secondary hover:text-primary transition-colors duration-300 text-[10px] font-sans font-light tracking-wide"
+                                        >
+                                            <Github size={12} className="opacity-80" />
+                                            <span>Created by Himanshu</span>
+                                        </a>
+                                    </LiquidTooltip>
                                 </div>
                             </div>
                         </motion.aside>

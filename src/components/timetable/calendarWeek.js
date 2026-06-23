@@ -5,14 +5,15 @@ import { redirect } from 'next/navigation';
 import dbConnect from '@/lib/db';
 import { Timetable } from "@/models/timetable.model";
 import { subject } from "@/models/subject.model";
-import { attendance } from "@/models/Attendance.model";
+import { Semester } from "@/models/semester.model";
+import { User } from "@/models/user.model";
 import CalendarUI from "./CalendarUI";
 
 const spaceGrotesk = Space_Grotesk({
     subsets: ["latin"],
     weight: ["600", "700"],
     display: "swap",
-});
+    });
 
 // Helper to get all 7 days of the current week with their exact start/end times
 const getCurrentWeekDates = () => {
@@ -57,13 +58,34 @@ const CalendarWeek = async () => {
     const startOfWeek = weekDays[0].startOfDay // Monday Morning 
     const endOfWeek = weekDays[6].endOfDay; // Sunday Night
 
-    const [allSchedule, weekAttendance] = await Promise.all([
+    const [allSchedule, userSettings] = await Promise.all([
         Timetable.find({ userId }).populate('subjectId').lean(),
-        attendance.find({
-            userId,
-            date: { $gte: startOfWeek, $lte: endOfWeek }
-        }).lean()
+        User.findById(userId).lean()
     ]);
+
+    const currentSemNum = userSettings?.currentSem || 1;
+    const activeSemDoc = await Semester.findOne({ userId, semester: currentSemNum }).lean();
+
+    let subjects = [];
+    if (activeSemDoc) {
+        subjects = await subject.find({ userId, semester: activeSemDoc._id }).lean();
+    }
+
+    const scheduledSubjectIds = new Set(allSchedule.map(slot => slot.subjectId?._id?.toString() || slot.subjectId?.toString()));
+    const unscheduledSubjects = subjects
+        .filter(sub => !scheduledSubjectIds.has(sub._id.toString()))
+        .map(sub => ({
+            id: sub._id.toString(),
+            name: sub.name,
+            code: sub.code,
+            credits: sub.credits
+        }));
+
+    const allSubjectsFormatted = subjects.map(sub => ({
+        id: sub._id.toString(),
+        name: sub.name,
+        code: sub.code
+    }));
 
     const weekStats = weekDays.map((dayInfo) => {
 
@@ -71,22 +93,8 @@ const CalendarWeek = async () => {
             (slot) => slot.dayOfWeek === dayInfo.dayOfWeek
         );
 
-        const attendanceForThisDate = weekAttendance.filter(
-            (a) => a.date >= dayInfo.startOfDay && a.date <= dayInfo.endOfDay
-        );
-
-        const attendanceMapForDay = new Map(
-            attendanceForThisDate.map((a) => [a.slotId?.toString(), a.status])
-        );
-
         const literalTotalClasses = scheduledClasses.length; // total scheduled, before cancellations
-        let attendedClasses = 0;
         let cancelledClasses = 0;
-
-        attendanceForThisDate.forEach((record) => {
-            if (record.status === "Attended") attendedClasses += 1;
-            else if (record.status === "Cancelled") cancelledClasses += 1;
-        });
 
         const currentTotalClasses = Math.max(0, literalTotalClasses - cancelledClasses);
 
@@ -107,7 +115,6 @@ const CalendarWeek = async () => {
                     room: lecture.room || "TBA",
                     startTime: lecture.startMinutes,
                     endTime: lecture.endMinutes,
-                    initialStatus: attendanceMapForDay.get(lecture._id.toString()) || ""
                 };
             });
 
@@ -116,15 +123,17 @@ const CalendarWeek = async () => {
             totalClasses: literalTotalClasses,
             literalTotalClasses,
             currentTotalClasses,
-            attendedClasses,
-            cancelledClasses,
             lectures
         };
     });
 
     return (
         <div>
-            <CalendarUI weekStats={weekStats} />
+            <CalendarUI 
+                weekStats={weekStats} 
+                unscheduledSubjects={unscheduledSubjects}
+                allSubjects={allSubjectsFormatted}
+            />
         </div>
     );
 };

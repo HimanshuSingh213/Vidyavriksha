@@ -1,7 +1,8 @@
 "use client";
-import { useEffect, useOptimistic, useState, useTransition } from "react";
-import { CircleCheck, CircleX, Monitor, FlaskConical, Ban } from "lucide-react";
-import { markAttendance } from "@/actions/Attendance";
+import { useEffect, useState } from "react";
+import { Monitor, FlaskConical, Trash2, Loader2 } from "lucide-react";
+import { deleteTimetableSlot } from "@/actions/subject";
+import { useRouter } from "next/navigation";
 
 export default function ModernLectureItem({
     subjectId,
@@ -13,29 +14,59 @@ export default function ModernLectureItem({
     teacher,
     room,
     type = "Lecture", // Default to Lecture
-    initialStatus,
-    currentDateIso
+    currentDateIso,
+    setToastConfig = () => {},
+    setModalConfig = () => {}
 }) {
-    const isLab = subject?.toLowerCase().includes("lab") || code?.toLowerCase().endsWith("p");
-    const displayType = isLab ? "Lab" : "Lecture";
+    const router = useRouter();
+    const [isDeleting, setIsDeleting] = useState(false);
 
-    const [isPending, startTransition] = useTransition();
-    const [optimisticStatus, addOptimisticStatus] = useOptimistic(
-        initialStatus,
-        (currentState, newStatus) => newStatus
-    );
-
-    const handleMarkAttendance = (status) => {
-        const newStatus = optimisticStatus === status ? "" : status;
-        startTransition(async () => {
-            addOptimisticStatus(newStatus);
-            try {
-                await markAttendance(subjectId, slotId, newStatus, currentDateIso);
-            } catch (error) {
-                console.error("Failed to save attendance:", error);
+    const handleDelete = () => {
+        setModalConfig({
+            isOpen: true,
+            title: "Delete Class Slot",
+            description: `Are you sure you want to remove this scheduled class slot for ${subject} (${code})?`,
+            type: "confirm",
+            confirmText: "Delete",
+            confirmDisabled: false,
+            onConfirm: async () => {
+                try {
+                    setModalConfig(prev => ({ ...prev, confirmDisabled: true, description: "Deleting..." }));
+                    setIsDeleting(true);
+                    const res = await deleteTimetableSlot(slotId);
+                    if (res && res.success) {
+                        setToastConfig({
+                            isOpen: true,
+                            title: "Success",
+                            description: "Class slot removed successfully!",
+                            type: "success"
+                        });
+                        router.refresh();
+                    } else {
+                        setToastConfig({
+                            isOpen: true,
+                            title: "Database Error",
+                            description: res?.error || "Failed to delete slot",
+                            type: "error"
+                        });
+                    }
+                } catch (err) {
+                    console.error("Delete error:", err);
+                    setToastConfig({
+                        isOpen: true,
+                        title: "Error",
+                        description: err.message || "Something went wrong.",
+                        type: "error"
+                    });
+                } finally {
+                    setIsDeleting(false);
+                    setModalConfig(prev => ({ ...prev, isOpen: false }));
+                }
             }
         });
     };
+    const isLab = subject?.toLowerCase().includes("lab") || code?.toLowerCase().endsWith("p");
+    const displayType = isLab ? "Lab" : "Lecture";
 
     function formatTime(mins) {
         const h = Math.floor(mins / 60);
@@ -115,55 +146,22 @@ export default function ModernLectureItem({
                 </div>
             </div>
 
-            {/* right section */}
-            <div className="flex items-center gap-2 sm:gap-3 mt-3 sm:mt-0 w-full sm:w-auto justify-end">
-                {/* Status Badge */}
-                {optimisticStatus && (
-                    <div className={`hidden md:flex px-2 py-1 rounded-full text-[10px] font-semibold uppercase border
-                        ${optimisticStatus === "Attended" ? "bg-success/10 border-success/30 text-success" : ""}
-                        ${optimisticStatus === "Missed" ? "bg-warning/10 border-warning/30 text-warning" : ""}
-                        ${optimisticStatus === "Cancelled" ? "bg-danger/10 border-danger/30 text-danger" : ""}
-                    `}>
-                        {optimisticStatus}
-                    </div>
-                )}
-
-                {/* Control Group */}
-                <div className="flex items-center p-1 gap-2">
-                    {/* Attended Button */}
-                    <button
-                        onClick={() => handleMarkAttendance("Attended")}
-                        disabled={isPending}
-                        className={`p-2 rounded-lg transition-all duration-300 hover:scale-105 
-                            ${optimisticStatus === "Attended" ? "bg-success/20 text-success" : "text-secondary hover:text-success bg-white/5 rounded-lg hover:bg-success/10"}
-                        `}
-                    >
-                        <CircleCheck size={18} />
-                    </button>
-
-                    {/* Missed Button */}
-                    <button
-                        onClick={() => handleMarkAttendance("Missed")}
-                        disabled={isPending}
-                        className={`p-2 rounded-lg transition-all duration-300 hover:scale-105 
-                            ${optimisticStatus === "Missed" ? "bg-warning/20 text-warning" : "text-secondary hover:text-warning bg-white/5 rounded-lg hover:bg-warning/10"}
-                        `}
-                    >
-                        <CircleX size={18} />
-                    </button>
-
-                    {/* Cancelled Button */}
-                    <button
-                        onClick={() => handleMarkAttendance("Cancelled")}
-                        disabled={isPending}
-                        className={`p-2 rounded-lg transition-all duration-300 hover:scale-105 
-                            ${optimisticStatus === "Cancelled" ? "bg-danger/20 text-danger" : "text-secondary hover:text-danger bg-white/5 hover:bg-danger/10"}
-                        `}
-                    >
-                        <Ban size={18} />
-                    </button>
-                </div>
+            {/* Delete button */}
+            <div className="flex items-center justify-end w-full sm:w-auto mt-3 sm:mt-0 sm:pl-4">
+                <button
+                    disabled={isDeleting}
+                    onClick={handleDelete}
+                    className="p-2 text-secondary hover:text-red-400 disabled:opacity-40 transition-colors duration-200 rounded-lg hover:bg-white/5"
+                    title="Delete Class Slot"
+                >
+                    {isDeleting ? (
+                        <Loader2 className="h-4 w-4 animate-spin text-secondary" />
+                    ) : (
+                        <Trash2 className="h-4 w-4" />
+                    )}
+                </button>
             </div>
+
         </div>
     );
 }

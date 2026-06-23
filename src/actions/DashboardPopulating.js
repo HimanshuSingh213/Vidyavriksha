@@ -3,37 +3,15 @@
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import dbConnect from "@/lib/db";
-import { Exam } from "@/models/exam.model";
 import { Timetable } from "@/models/timetable.model";
-import { attendance } from "@/models/Attendance.model";
 import { unstable_cache } from "next/cache";
 
 const fetchDashboardFromDb = async (userId, todayDayOfWeek, startOfDayTime, endOfDayTime) => {
   await dbConnect();
 
-  const startOfDay = new Date(startOfDayTime);
-  const endOfDay = new Date(endOfDayTime);
-
-  const rawExams = await Exam.find({ userId, date: { $gte: startOfDay } })
-    .populate("subjectId")
-    .sort({ date: 1 })
-    .limit(8)
-    .lean();
-
-  const upcomingExams = rawExams.map((exam) => ({
-    id: exam._id.toString(),
-    subject: exam.subjectId?.name || "Unknown Subject",
-    code: exam.subjectId?.code || "N/A",
-    type: exam.title,
-    examDateString: exam.date.toISOString(),
-  }));
-
-  const [rawSchedule, todayAttendance] = await Promise.all([
-    Timetable.find({ userId, dayOfWeek: todayDayOfWeek }).populate('subjectId').sort({ startMinutes: 1 }).lean(),
-    attendance.find({ userId, date: { $gte: startOfDay, $lte: endOfDay } }).lean()
+  const [rawSchedule] = await Promise.all([
+    Timetable.find({ userId, dayOfWeek: todayDayOfWeek }).populate('subjectId').sort({ startMinutes: 1 }).lean()
   ]);
-
-  const attendanceMap = new Map(todayAttendance.map(a => [a.slotId?.toString(), a.status]));
 
   const todaySchedule = rawSchedule.map(lecture => ({
     _id: lecture._id.toString(),
@@ -43,10 +21,9 @@ const fetchDashboardFromDb = async (userId, todayDayOfWeek, startOfDayTime, endO
     teacher: lecture.teacher || "",
     startMinutes: lecture.startMinutes,
     endMinutes: lecture.endMinutes,
-    initialStatus: attendanceMap.get(lecture._id.toString()) || ""
   }));
 
-  return { upcomingExams, todaySchedule };
+  return { todaySchedule };
 };
 
 const getCachedDashboard = (userId, todayDayOfWeek, startOfDayTime, endOfDayTime, startOfDayIso) => {

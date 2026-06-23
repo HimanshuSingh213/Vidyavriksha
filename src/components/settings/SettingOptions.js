@@ -6,6 +6,7 @@ import { updateUserSettings } from '@/actions/userSettings';
 import SemMenu from './SemMenu';
 import SemData from './SemData';
 import AccountDelete from './AccountDelete';
+import Toast from '@/components/ui/Toast';
 
 export default function SettingOptions({ session }) {
     const [active, setActive] = useState(1);
@@ -30,6 +31,15 @@ export default function SettingOptions({ session }) {
 
     const [isManualCGPA, setIsManualCGPA] = useState(savedIsManualCGPA);
     const [isCalculating, setIsCalculating] = useState(false);
+
+    // Toast State
+    const [toastConfig, setToastConfig] = useState({
+        isOpen: false,
+        title: "",
+        description: "",
+        type: "info"
+    });
+    const closeToast = () => setToastConfig(prev => ({ ...prev, isOpen: false }));
 
     useEffect(() => {
         setLocalName(displayName || "");
@@ -71,9 +81,19 @@ export default function SettingOptions({ session }) {
         try {
             await updateUserSettings({ name: localName });
             setDisplayName(localName);
-            alert(`Settings updated successfully!`);
+            setToastConfig({
+                isOpen: true,
+                title: "Success",
+                description: "Name updated successfully!",
+                type: "success"
+            });
         } catch (error) {
-            alert("Failed to update name.");
+            setToastConfig({
+                isOpen: true,
+                title: "Error",
+                description: "Failed to update name.",
+                type: "error"
+            });
         }
     };
 
@@ -91,7 +111,12 @@ export default function SettingOptions({ session }) {
             });
 
             if (!res.success) {
-                alert(`Error: ${res.message}`);
+                setToastConfig({
+                    isOpen: true,
+                    title: "Error",
+                    description: res.message || "Failed to update academic details.",
+                    type: "error"
+                });
                 return;
             }
 
@@ -106,16 +131,34 @@ export default function SettingOptions({ session }) {
             }
             if (setSavedIsManualCGPA) setSavedIsManualCGPA(isManualCGPA);
 
-            alert(`Academic details updated successfully!`);
+            setToastConfig({
+                isOpen: true,
+                title: "Success",
+                description: "Academic details updated successfully!",
+                type: "success"
+            });
         } catch (error) {
-            alert("Failed to update academic details.");
+            setToastConfig({
+                isOpen: true,
+                title: "Error",
+                description: error.message || "Failed to update academic details.",
+                type: "error"
+            });
         } finally {
             setIsCalculating(false);
         }
     }
 
     return (
-        <AnimatePresence mode="wait">
+        <>
+            <Toast
+                isOpen={toastConfig.isOpen}
+                onClose={closeToast}
+                title={toastConfig.title}
+                description={toastConfig.description}
+                type={toastConfig.type}
+            />
+            <AnimatePresence mode="wait">
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -357,8 +400,8 @@ export default function SettingOptions({ session }) {
                         <AccountDelete />
                     </div>
                 )}
-
-            </motion.div>
+                </motion.div>
         </AnimatePresence>
+    </>
     );
 }

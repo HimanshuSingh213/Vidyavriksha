@@ -24,7 +24,12 @@ function SemData() {
     const [addSubjectState, isAddingSubject] = useState({
         name: "",
         code: "",
-        credits: 1
+        credits: 3,
+        dayOfWeek: "",
+        startTime: "",
+        endTime: "",
+        room: "",
+        teacher: ""
     });
     
     const [isSaving, setIsSaving] = useState(false);
@@ -82,6 +87,27 @@ function SemData() {
             return;
         }
 
+        if (addSubjectState.dayOfWeek !== "") {
+            if (!addSubjectState.startTime || !addSubjectState.endTime) {
+                setToastConfig({
+                    isOpen: true,
+                    title: "Validation Error",
+                    description: "Start Time and End Time are required when scheduling a class.",
+                    type: "error"
+                });
+                return;
+            }
+            if (addSubjectState.startTime >= addSubjectState.endTime) {
+                setToastConfig({
+                    isOpen: true,
+                    title: "Validation Error",
+                    description: "End Time must be after Start Time.",
+                    type: "error"
+                });
+                return;
+            }
+        }
+
         try {
             setIsSaving(true);
             const response = await addSubject({
@@ -98,7 +124,16 @@ function SemData() {
                 });
 
                 // Reset form
-                isAddingSubject({ name: "", code: "", credits: 1 });
+                isAddingSubject({ 
+                    name: "", 
+                    code: "", 
+                    credits: 3, 
+                    dayOfWeek: "", 
+                    startTime: "", 
+                    endTime: "", 
+                    room: "", 
+                    teacher: "" 
+                });
                 setIsOpen(false);
                 
                 // Refresh data
@@ -188,17 +223,6 @@ function SemData() {
                                         />
                                     </div>
 
-                                    {/* Subject Teacher */}
-                                    {/* <div className='flex items-start justify-center flex-col'>
-                                        <p className='text-secondary text-[10px] mb-0.5 uppercase'>Instructor</p>
-                                        <input
-                                            value={addSubject.teacher}
-                                            onChange={(e) => isAddingSubject(prev => ({ ...prev, teacher: e.target.value }))}
-                                            type="text" placeholder='Instructor'
-                                            className='rounded-lg h-8 border text-xs text-primary border-primary/10 bg-primary/5 focus:ring focus:ring-primary/15 focus:outline-none transition-all duration-200 px-2 py-1 w-full appearance-none'
-                                        />
-                                    </div> */}
-
                                     {/* Subject Credits */}
                                     <div className='flex items-start justify-center flex-col'>
                                         <p className='text-secondary text-[10px] mb-0.5 uppercase'>Credits</p>
@@ -213,7 +237,77 @@ function SemData() {
                                                 </option>
                                             ))}
                                         </select>
+                                    </div>
 
+                                    {/* Day of Class */}
+                                    <div className='flex items-start justify-center flex-col'>
+                                        <p className='text-secondary text-[10px] mb-0.5 uppercase'>Day of Class</p>
+                                        <select
+                                            value={addSubjectState.dayOfWeek}
+                                            onChange={(e) => isAddingSubject(prev => ({ ...prev, dayOfWeek: e.target.value }))}
+                                            className="w-full text-xs pl-3 pr-8 py-1.5 h-8 bg-primary/5 outline outline-primary/10 focus:outline-primary/25 transition duration-200 ease-in-out rounded-lg text-primary appearance-none cursor-pointer"
+                                        >
+                                            <option value="" className="bg-obsidian text-secondary">No Class Scheduled</option>
+                                            <option value="1" className="bg-obsidian text-secondary">Monday</option>
+                                            <option value="2" className="bg-obsidian text-secondary">Tuesday</option>
+                                            <option value="3" className="bg-obsidian text-secondary">Wednesday</option>
+                                            <option value="4" className="bg-obsidian text-secondary">Thursday</option>
+                                            <option value="5" className="bg-obsidian text-secondary">Friday</option>
+                                            <option value="6" className="bg-obsidian text-secondary">Saturday</option>
+                                            <option value="0" className="bg-obsidian text-secondary">Sunday</option>
+                                        </select>
+                                    </div>
+
+                                    {/* Start Time */}
+                                    <div className='flex items-start justify-center flex-col'>
+                                        <p className='text-secondary text-[10px] mb-0.5 uppercase'>Start Time</p>
+                                        <input
+                                            value={addSubjectState.startTime}
+                                            onChange={(e) => isAddingSubject(prev => ({ ...prev, startTime: e.target.value }))}
+                                            type="time"
+                                            disabled={addSubjectState.dayOfWeek === ""}
+                                            className={`rounded-lg h-8 border text-xs border-primary/10 bg-primary/5 focus:ring focus:ring-primary/15 focus:outline-none transition-all duration-200 px-2 py-1 w-full appearance-none disabled:opacity-40 disabled:cursor-not-allowed ${
+                                                addSubjectState.startTime ? 'text-primary' : 'text-primary/30'
+                                            }`}
+                                        />
+                                    </div>
+
+                                    {/* End Time */}
+                                    <div className='flex items-start justify-center flex-col'>
+                                        <p className='text-secondary text-[10px] mb-0.5 uppercase'>End Time</p>
+                                        <input
+                                            value={addSubjectState.endTime}
+                                            onChange={(e) => isAddingSubject(prev => ({ ...prev, endTime: e.target.value }))}
+                                            type="time"
+                                            disabled={addSubjectState.dayOfWeek === ""}
+                                            className={`rounded-lg h-8 border text-xs border-primary/10 bg-primary/5 focus:ring focus:ring-primary/15 focus:outline-none transition-all duration-200 px-2 py-1 w-full appearance-none disabled:opacity-40 disabled:cursor-not-allowed ${
+                                                addSubjectState.endTime ? 'text-primary' : 'text-primary/30'
+                                            }`}
+                                        />
+                                    </div>
+
+                                    {/* Room */}
+                                    <div className='flex items-start justify-center flex-col'>
+                                        <p className='text-secondary text-[10px] mb-0.5 uppercase'>Room / Location</p>
+                                        <input
+                                            value={addSubjectState.room}
+                                            onChange={(e) => isAddingSubject(prev => ({ ...prev, room: e.target.value }))}
+                                            type="text" placeholder={addSubjectState.dayOfWeek === "" ? "Select a day first" : "e.g., Room 302, Lab A"}
+                                            disabled={addSubjectState.dayOfWeek === ""}
+                                            className='rounded-lg h-8 border text-xs text-primary border-primary/10 bg-primary/5 focus:ring focus:ring-primary/15 focus:outline-none transition-all duration-200 px-2 py-1 w-full appearance-none disabled:opacity-40 disabled:cursor-not-allowed'
+                                        />
+                                    </div>
+
+                                    {/* Instructor */}
+                                    <div className='flex items-start justify-center flex-col'>
+                                        <p className='text-secondary text-[10px] mb-0.5 uppercase'>Instructor / Teacher</p>
+                                        <input
+                                            value={addSubjectState.teacher}
+                                            onChange={(e) => isAddingSubject(prev => ({ ...prev, teacher: e.target.value }))}
+                                            type="text" placeholder={addSubjectState.dayOfWeek === "" ? "Select a day first" : "Instructor Name"}
+                                            disabled={addSubjectState.dayOfWeek === ""}
+                                            className='rounded-lg h-8 border text-xs text-primary border-primary/10 bg-primary/5 focus:ring focus:ring-primary/15 focus:outline-none transition-all duration-200 px-2 py-1 w-full appearance-none disabled:opacity-40 disabled:cursor-not-allowed'
+                                        />
                                     </div>
                                 </div>
 

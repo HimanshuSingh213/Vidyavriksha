@@ -45,3 +45,53 @@
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.2);
 }
+
+/* 5. Custom WebKit Time & Date Picker Styling (Dark Mode) */
+input[type="time"],
+input[type="date"] {
+  color-scheme: dark;
+}
+
+input[type="time"]::-webkit-calendar-picker-indicator,
+input[type="date"]::-webkit-calendar-picker-indicator {
+  opacity: 0.8;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+input[type="time"]::-webkit-calendar-picker-indicator:hover,
+input[type="date"]::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+}
+
+input[type="time"]::-webkit-datetime-edit-fields-wrapper {
+  color: inherit;
+}
+
+input[type="time"]::-webkit-datetime-edit-text {
+  color: inherit;
+  opacity: 0.4;
+  padding: 0 1px;
+}
+
+input[type="time"]::-webkit-datetime-edit-hour-field,
+input[type="time"]::-webkit-datetime-edit-minute-field,
+input[type="time"]::-webkit-datetime-edit-ampm-field {
+  color: inherit;
+}
+
+input[type="time"]::-webkit-datetime-edit-hour-field:focus,
+input[type="time"]::-webkit-datetime-edit-minute-field:focus,
+input[type="time"]::-webkit-datetime-edit-ampm-field:focus {
+  background-color: var(--color-brand);
+  color: white;
+  border-radius: 2px;
+}
+
+/* If the input is required and empty (invalid), display placeholder styling */
+input[required][type="time"]:invalid {
+  color: rgba(248, 249, 252, 0.3) !important;
+}
+input[required][type="time"]:valid {
+  color: var(--color-primary) !important;
+}

@@ -3,8 +3,15 @@
 import { auth } from "@/auth";
 import dbConnect from "@/lib/db";
 import { subject } from "@/models/subject.model";
+import { Timetable } from "@/models/timetable.model";
 import { syncUserCGPAIfAuto, updateSemesterSGPA } from "./semester";
 import { revalidateTag } from "next/cache";
+
+function parseTimeToMinutes(timeStr) {
+    if (!timeStr) return 0;
+    const [hours, minutes] = timeStr.split(':').map(Number);
+    return hours * 60 + minutes;
+}
 
 export default async function updateSubjectMarks(SubId, updatedMarks) {
     const session = await auth();
@@ -67,11 +74,15 @@ export async function deleteSubject(SubId) {
             return { success: false, error: "Subject not found" };
         }
 
+        // Clean up any timetable entries associated with this subject
+        await Timetable.deleteMany({ userId, subjectId: SubId });
+
         await updateSemesterSGPA(SubToDelete.semester, userId);
         await syncUserCGPAIfAuto(userId);
         revalidateTag(`analytics-${userId}`);
         revalidateTag(`vault-${userId}`);
         revalidateTag(`semester-${userId}`);
+        revalidateTag(`dashboard-${userId}`);
 
         return { success: true, message: "Subject deleted successfully" };
     } catch (err) {
@@ -98,12 +109,29 @@ export async function addSubject(subjectData){
             userId: userId
         });
 
+        // Add timetable entry if dayOfWeek is provided
+        if (subjectData.dayOfWeek !== undefined && subjectData.dayOfWeek !== null && subjectData.dayOfWeek !== "") {
+            const startMinutes = parseTimeToMinutes(subjectData.startTime);
+            const endMinutes = parseTimeToMinutes(subjectData.endTime);
+
+            await Timetable.create({
+                userId,
+                subjectId: subToAdd._id,
+                dayOfWeek: Number(subjectData.dayOfWeek),
+                startMinutes,
+                endMinutes,
+                room: subjectData.room || 'TBA',
+                teacher: subjectData.teacher || 'TBA'
+            });
+        }
+
         await updateSemesterSGPA(subjectData.semester, session.user.id);
         await syncUserCGPAIfAuto(userId);
 
         revalidateTag(`analytics-${userId}`);
         revalidateTag(`vault-${userId}`);
         revalidateTag(`semester-${userId}`);
+        revalidateTag(`dashboard-${userId}`);
 
         return {
             success: true,
@@ -127,4 +155,50 @@ export async function getGradePointFromMarks(marks) {
     if (numMarks >= 50) return 6;
     if (numMarks >= 40) return 5; 
     return 0;
+}
+
+export async function addTimetableSlot(slotData) {
+    const session = await auth();
+    if (!session?.user?.id)
+        return { success: false, error: "Unauthorized access" };
+
+    const userId = session?.user?.id;
+    await dbConnect();
+
+    try {
+        const startMinutes = parseTimeToMinutes(slotData.startTime);
+        const endMinutes = parseTimeToMinutes(slotData.endTime);
+
+        await Timetable.create({
+            userId,
+            subjectId: slotData.subjectId,
+            dayOfWeek: Number(slotData.dayOfWeek),
+            startMinutes,
+            endMinutes,
+            room: slotData.room || 'TBA',
+            teacher: slotData.teacher || 'TBA'
+        });
+
+        revalidateTag(`dashboard-${userId}`);
+        return { success: true, message: "Timetable slot added successfully!" };
+    } catch (err) {
+        return { success: false, error: err.message || "Failed to add timetable slot" };
+    }
+}
+
+export async function deleteTimetableSlot(slotId) {
+    const session = await auth();
+    if (!session?.user?.id)
+        return { success: false, error: "Unauthorized access" };
+
+    const userId = session?.user?.id;
+    await dbConnect();
+
+    try {
+        await Timetable.deleteOne({ _id: slotId, userId });
+        revalidateTag(`dashboard-${userId}`);
+        return { success: true, message: "Timetable slot deleted successfully!" };
+    } catch (err) {
+        return { success: false, error: err.message || "Failed to delete slot" };
+    }
 }

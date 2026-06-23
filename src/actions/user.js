@@ -3,8 +3,6 @@ import { auth } from '@/auth'
 import dbConnect from '@/lib/db';
 import { Semester } from '@/models/semester.model';
 import { Timetable } from '@/models/timetable.model';
-import { attendance } from '@/models/Attendance.model';
-import { Exam } from '@/models/exam.model';
 import mongoose from 'mongoose';
 import { subject } from '@/models/subject.model';
 import { User } from '@/models/user.model';
@@ -27,8 +25,6 @@ export default async function deleteAccount() {
         const objectIdUserId = new mongoose.Types.ObjectId(userId);
         const [
             timetableDel,
-            attendanceDel,
-            examsDel,
             subjectsDel,
             semestersDel,
             userDel,
@@ -36,8 +32,6 @@ export default async function deleteAccount() {
             sessionDel
         ] = await Promise.all([
             Timetable.deleteMany({ userId }),     //  Delete all timetables
-            attendance.deleteMany({ userId }),    //  Delete all attendance records
-            Exam.deleteMany({ userId }),          //  Delete all exams
             subject.deleteMany({ userId }),       //  Delete all subjects
             Semester.deleteMany({ userId }),      //  Delete all semesters
             User.findByIdAndDelete(userId),       //  Delete the actual User Profile

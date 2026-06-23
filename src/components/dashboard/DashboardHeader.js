@@ -20,7 +20,7 @@ const routeHeadings = [
     {
         match: "/dashboard/timetable",
         heading: "Daily Operation",
-        subHeading: "Timetable & attendance tracking",
+        subHeading: "Weekly timetable overview",
     },
     {
         match: "/dashboard/vault",

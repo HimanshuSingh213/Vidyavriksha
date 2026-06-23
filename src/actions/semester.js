@@ -2,8 +2,6 @@
 
 import { auth } from "@/auth";
 import dbConnect from "@/lib/db";
-import { attendance } from "@/models/Attendance.model";
-import { Exam } from "@/models/exam.model";
 import { Semester } from "@/models/semester.model";
 import { subject } from "@/models/subject.model";
 import { Timetable } from "@/models/timetable.model";
@@ -90,13 +88,11 @@ export async function deleteSemester(SemId) {
 
         const subjectIds = allSubjects.map((sub) => sub._id);
 
-        const [timetableDel, attendanceDel, examsDel] = await Promise.all([
-            Timetable.deleteMany({ userId, subjectId: { $in: subjectIds } }),
-            attendance.deleteMany({ userId, subjectId: { $in: subjectIds } }),
-            Exam.deleteMany({ userId, subjectId: { $in: subjectIds } })
+        const [timetableDel] = await Promise.all([
+            Timetable.deleteMany({ userId, subjectId: { $in: subjectIds } })
         ]);
 
-        if (!timetableDel.acknowledged || !attendanceDel.acknowledged || !examsDel.acknowledged) {
+        if (!timetableDel.acknowledged) {
             return { success: false, error: "Failed to clean up associated subject records." };
         }
 
