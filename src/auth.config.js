@@ -20,4 +20,8 @@ export default {
             return session;
         },
     },
+    pages: {
+        signIn: "/login",
+        error: "/login",
+    },
 }

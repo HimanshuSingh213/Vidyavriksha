@@ -1,13 +1,19 @@
 import { auth, signOut } from "@/auth";
-import { GraduationCap, LayoutDashboard, CalendarDays, FolderArchive, TrendingUp } from "lucide-react";
+import { LayoutDashboard, CalendarDays, FolderArchive, TrendingUp } from "lucide-react";
 import SidebarNav from "@/components/dashboard/SideBarNav";
 import MobileNav from "@/components/dashboard/MobileNav";
 import DashboardUIWrapper from "@/components/dashboard/DashboardUIWrapper";
 import { UserProvider } from "../Context/UserContext";
 import { getUserSettings } from "@/actions/userSettings";
+import { redirect } from "next/navigation";
 
 export default async function DashboardLayout({ children }) {
     const session = await auth();
+
+    if (!session?.user?.id) {
+        redirect("/login");
+    }
+
     const userSettings = await getUserSettings();
 
     // Server Action for Sign Out

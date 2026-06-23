@@ -1,13 +1,52 @@
 "use client"
 import { signIn } from "next-auth/react"
+import { useSearchParams } from "next/navigation"
+import { useEffect, useState, Suspense } from "react"
+import Toast from "@/components/ui/Toast"
 
-export default function LoginPage() {
+function LoginContent() {
+    const searchParams = useSearchParams();
+    const errorParam = searchParams.get("error");
+    const [toastConfig, setToastConfig] = useState({
+        isOpen: false,
+        title: "",
+        description: "",
+        type: "info"
+    });
+
+    const closeToast = () => setToastConfig(prev => ({ ...prev, isOpen: false }));
+
+    useEffect(() => {
+        if (errorParam) {
+            let errorMsg = "An error occurred during authentication.";
+            if (errorParam === "OAuthCallbackError" || errorParam === "Callback") {
+                errorMsg = "Sign in was aborted or cancelled.";
+            } else if (errorParam === "AccessDenied") {
+                errorMsg = "Sign in access was denied.";
+            }
+
+            setToastConfig({
+                isOpen: true,
+                title: "Authentication Error",
+                description: errorMsg,
+                type: "error"
+            });
+        }
+    }, [errorParam]);
+
     const handleGoogleLogin = async () => {
         await signIn("google", { redirectTo: "/dashboard" });
     };
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-obsidian relative overflow-hidden selection:bg-brand/30">
+            <Toast
+                isOpen={toastConfig.isOpen}
+                onClose={closeToast}
+                title={toastConfig.title}
+                description={toastConfig.description}
+                type={toastConfig.type}
+            />
             
             {/* Background Ambient Glows for depth */}
             <div className="absolute top-[-10%] left-[-10%] w-96 h-96 bg-brand/20 blur-[120px] rounded-full pointer-events-none" />
@@ -61,5 +100,17 @@ export default function LoginPage() {
                 </p>
             </div>
         </div>
+    );
+}
+
+export default function LoginPage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen flex items-center justify-center bg-obsidian text-secondary font-mono text-xs">
+                Loading...
+            </div>
+        }>
+            <LoginContent />
+        </Suspense>
     );
 }
