@@ -6,6 +6,7 @@ import Image from "next/image";
 import { Menu, X, GraduationCap, Settings, LogOut, Sliders, Github } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import LiquidTooltip from "@/components/rareui/LiquidTooltip";
+import { signOut } from "next-auth/react";
 
 export default function MobileNav({ navLinks, user, signOutAction, settingsHref }) {
     const [isOpen, setIsOpen] = useState(false);
@@ -137,11 +138,15 @@ export default function MobileNav({ navLinks, user, signOutAction, settingsHref 
                                         <Settings size={18} />
                                     </Link>
 
-                                    <form className="w-1/2" action={signOutAction} title="logOut">
-                                        <button className="w-full h-8 py-2 flex items-center justify-center text-xs font-medium hover:bg-white/5 border border-white/8 rounded-lg transition-colors text-danger/80 hover:text-primary">
-                                            <LogOut size={18} />
-                                        </button>
-                                    </form>
+                                    <button
+                                        onClick={async () => {
+                                            await signOut({ callbackUrl: "/login" });
+                                        }}
+                                        className="w-1/2 h-8 py-2 flex items-center justify-center text-xs font-medium hover:bg-white/5 border border-white/8 rounded-lg transition-colors text-danger/80 hover:text-primary cursor-pointer"
+                                        title="logOut"
+                                    >
+                                        <LogOut size={18} />
+                                    </button>
                                 </div>
 
                                 <div className="flex justify-center items-center pt-2 border-t border-white/5">

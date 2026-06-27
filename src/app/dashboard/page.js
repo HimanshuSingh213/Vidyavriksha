@@ -76,7 +76,7 @@ export default function DashboardPage() {
               Target: {targetCGPA}
             </div>
             <div className={`px-3 py-1 border rounded ${currentCGPA !== null && currentCGPA > 0 && targetCGPA > currentCGPA?"text-warning bg-warning/10 border-warning/20": "text-success bg-success/10 border-success/20"} text-xs font-mono`}>
-               {currentCGPA !== null && currentCGPA > 0 && targetCGPA > currentCGPA? (`Deficit: ${Number(targetCGPA-currentCGPA).toFixed(2)}`): (`Surplus: ${Number((currentCGPA || 0)-targetCGPA).toFixed(2)}`)}
+               {currentCGPA !== null && currentCGPA > 0 && targetCGPA > currentCGPA? (`Deficit: ${Number(targetCGPA-currentCGPA).toFixed(2)}`): (`Surplus: ${Number(Math.max(0, (currentCGPA || 0)-targetCGPA)).toFixed(2)}`)}
             </div>
           </div>
 
@@ -100,7 +100,7 @@ export default function DashboardPage() {
             ) : (
               <p className="text-success flex items-center gap-1.5">
                 <Sparkles size={14} className="shrink-0 text-success" />
-                <span>On Track: You have a surplus of <span className="text-white font-bold">{Number((currentCGPA || 0) - targetCGPA).toFixed(2)}</span>! Maintain an average of <span className="text-white font-bold">{Math.max(0, requiredSGPA).toFixed(2)} SGPA</span> in the remaining {remainingSems} semesters to lock in your goal.</span>
+                <span>On Track: You have a surplus of <span className="text-white font-bold">{Number(Math.max(0, (currentCGPA || 0) - targetCGPA)).toFixed(2)}</span>! Maintain an average of <span className="text-white font-bold">{Math.max(0, requiredSGPA).toFixed(2)} SGPA</span> in the remaining {remainingSems} semesters to lock in your goal.</span>
               </p>
             )}
           </div>

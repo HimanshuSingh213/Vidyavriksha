@@ -91,7 +91,6 @@ async function AnalyticsPage({ searchParams }) {
               radialData={radialData}
               distributedGraphData={distributedGraphData}
               sgpaProgressionData={sgpaProgressionData}
-              totalSems={totalSems}
             />
           )}
 

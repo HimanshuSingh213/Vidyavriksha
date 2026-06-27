@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { LogOut, Settings, Sliders, Github, GraduationCap, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { motion } from "framer-motion";
 import LiquidTooltip from "@/components/rareui/LiquidTooltip";
+import { signOut } from "next-auth/react";
 
 export default function SidebarNav({ navLinks, user, signOutAction }) {
     const pathname = usePathname();
@@ -122,11 +123,17 @@ export default function SidebarNav({ navLinks, user, signOutAction }) {
                             <Settings size={18} />
                         </Link>
 
-                        <form className={isCollapsed ? "w-10 h-10 shrink-0" : "w-1/2"} action={signOutAction} title="logOut">
-                            <button className="w-full h-full py-2 flex items-center justify-center hover:bg-white/5 border border-white/8 rounded-lg transition-colors text-danger/80 hover:text-primary cursor-pointer">
-                                <LogOut size={18} />
-                            </button>
-                        </form>
+                        <button
+                            onClick={async () => {
+                                await signOut({ callbackUrl: "/login" });
+                            }}
+                            className={`flex items-center justify-center hover:bg-white/5 border border-white/8 rounded-lg transition-colors text-danger/80 hover:text-primary cursor-pointer ${
+                                isCollapsed ? "w-10 h-10 shrink-0" : "w-1/2 py-2"
+                            }`}
+                            title="logOut"
+                        >
+                            <LogOut size={18} />
+                        </button>
                     </div>
 
                     <div className="flex justify-center items-center pt-2 border-t border-white/5 w-full">
