@@ -148,13 +148,14 @@ export async function getGradePointFromMarks(marks) {
     const numMarks = Number(marks);
     if (isNaN(numMarks) || numMarks < 0) return 0;
     
-    if (numMarks >= 90) return 10;
-    if (numMarks >= 80) return 9;
-    if (numMarks >= 70) return 8;
-    if (numMarks >= 60) return 7;
-    if (numMarks >= 50) return 6;
-    if (numMarks >= 40) return 5; 
-    return 0;
+    if (numMarks >= 90) return 10; // Grade O
+    if (numMarks >= 75) return 9;  // Grade A+
+    if (numMarks >= 65) return 8;  // Grade A
+    if (numMarks >= 55) return 7;  // Grade B+
+    if (numMarks >= 50) return 6;  // Grade B
+    if (numMarks >= 45) return 5;  // Grade C
+    if (numMarks >= 40) return 4;  // Grade P
+    return 0;                      // Grade F
 }
 
 export async function addTimetableSlot(slotData) {

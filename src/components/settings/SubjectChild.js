@@ -137,33 +137,43 @@ function SubjectChild({ subject, setModalConfig, setToastConfig, refreshData }) 
                         {/* actual content inside the drawer */}
                         <div className='p-6 grid grid-cols-2 sm:grid-cols-4 gap-6'>
 
-                            <div className='flex flex-col items-start gap-1'>
-                                <span className='text-[10px] text-secondary  tracking-wider'>MINOR 1</span>
-                                <div className='relative'>
-                                    <input
-                                        value={minor1}
-                                        onChange={(e) => setMinor1(e.target.value)}
-                                        type="number" name="minor1"
-                                        className='rounded-lg h-full border text-xs text-primary border-primary/10 bg-primary/5 focus:ring focus:ring-primary/15 focus:outline-none transition-all duration-200 px-2 py-1 w-full
-                                [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-inner-spin-button]:m-0 [appearance:textfield]
-                                '
-                                    />
-                                </div>
-                            </div>
+                            {/* Check if subject is a Lab course */}
+                            {(() => {
+                                const isLab = /lab|practical|laboratory|workshop/i.test(`${subject.name || ""} ${subject.code || ""}`);
+                                return (
+                                    <>
+                                        <div className='flex flex-col items-start gap-1'>
+                                            <span className='text-[10px] text-secondary tracking-wider'>MINOR 1</span>
+                                            <div className='relative w-full'>
+                                                <input
+                                                    value={isLab ? "" : minor1}
+                                                    onChange={(e) => setMinor1(e.target.value)}
+                                                    disabled={isLab}
+                                                    placeholder={isLab ? "N/A (Lab)" : "0"}
+                                                    type="number" name="minor1"
+                                                    className={`rounded-lg h-full border text-xs border-primary/10 bg-primary/5 focus:ring focus:ring-primary/15 focus:outline-none transition-all duration-200 px-2 py-1 w-full
+                                            [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-inner-spin-button]:m-0 [appearance:textfield] ${isLab ? "text-secondary/40 cursor-not-allowed italic" : "text-primary"}`}
+                                                />
+                                            </div>
+                                        </div>
 
-                            <div className='flex flex-col items-start gap-1'>
-                                <span className='text-[10px] text-secondary  tracking-wider'>MINOR 2</span>
-                                <div className='relative'>
-                                    <input
-                                        value={minor2}
-                                        onChange={(e) => setMinor2(e.target.value)}
-                                        type="number" name="minor2"
-                                        className='rounded-lg h-full border text-xs text-primary border-primary/10 bg-primary/5 focus:ring focus:ring-primary/15 focus:outline-none transition-all duration-200 px-2 py-1 w-full
-                                [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-inner-spin-button]:m-0 [appearance:textfield]
-                                '
-                                    />
-                                </div>
-                            </div>
+                                        <div className='flex flex-col items-start gap-1'>
+                                            <span className='text-[10px] text-secondary tracking-wider'>MINOR 2</span>
+                                            <div className='relative w-full'>
+                                                <input
+                                                    value={isLab ? "" : minor2}
+                                                    onChange={(e) => setMinor2(e.target.value)}
+                                                    disabled={isLab}
+                                                    placeholder={isLab ? "N/A (Lab)" : "0"}
+                                                    type="number" name="minor2"
+                                                    className={`rounded-lg h-full border text-xs border-primary/10 bg-primary/5 focus:ring focus:ring-primary/15 focus:outline-none transition-all duration-200 px-2 py-1 w-full
+                                            [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-inner-spin-button]:m-0 [appearance:textfield] ${isLab ? "text-secondary/40 cursor-not-allowed italic" : "text-primary"}`}
+                                                />
+                                            </div>
+                                        </div>
+                                    </>
+                                );
+                            })()}
 
                             <div className='flex flex-col items-start gap-1'>
                                 <span className='text-[10px] text-secondary  tracking-wider'>INTERNAL</span>

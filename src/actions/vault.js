@@ -41,6 +41,6 @@ export const getVaultData = async () => {
         }
     );
 
-    // 5. Execute and return the cached function
+    // Execute and return the cached function
     return await getCachedVault();
 }

@@ -71,7 +71,14 @@ const CalendarWeek = async () => {
         subjects = await subject.find({ userId, semester: activeSemDoc._id }).lean();
     }
 
-    const scheduledSubjectIds = new Set(allSchedule.map(slot => slot.subjectId?._id?.toString() || slot.subjectId?.toString()));
+    const currentSemSubjectIds = new Set(subjects.map(sub => sub._id.toString()));
+
+    const currentSemSchedule = allSchedule.filter(slot => {
+        const subId = slot.subjectId?._id?.toString() || slot.subjectId?.toString();
+        return subId && currentSemSubjectIds.has(subId);
+    });
+
+    const scheduledSubjectIds = new Set(currentSemSchedule.map(slot => slot.subjectId?._id?.toString() || slot.subjectId?.toString()));
     const unscheduledSubjects = subjects
         .filter(sub => !scheduledSubjectIds.has(sub._id.toString()))
         .map(sub => ({
@@ -89,7 +96,7 @@ const CalendarWeek = async () => {
 
     const weekStats = weekDays.map((dayInfo) => {
 
-        const scheduledClasses = allSchedule.filter(
+        const scheduledClasses = currentSemSchedule.filter(
             (slot) => slot.dayOfWeek === dayInfo.dayOfWeek
         );
 

@@ -4,14 +4,29 @@ import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import dbConnect from "@/lib/db";
 import { Timetable } from "@/models/timetable.model";
+import { User } from "@/models/user.model";
+import { Semester } from "@/models/semester.model";
+import { subject } from "@/models/subject.model";
 import { unstable_cache } from "next/cache";
 
 const fetchDashboardFromDb = async (userId, todayDayOfWeek, startOfDayTime, endOfDayTime) => {
   await dbConnect();
 
-  const [rawSchedule] = await Promise.all([
-    Timetable.find({ userId, dayOfWeek: todayDayOfWeek }).populate('subjectId').sort({ startMinutes: 1 }).lean()
-  ]);
+  const userSettings = await User.findById(userId).lean();
+  const currentSemNum = userSettings?.currentSem || 1;
+  const activeSemDoc = await Semester.findOne({ userId, semester: currentSemNum }).lean();
+
+  let currentSemSubjectIds = [];
+  if (activeSemDoc) {
+    const semSubjects = await subject.find({ userId, semester: activeSemDoc._id }).select('_id').lean();
+    currentSemSubjectIds = semSubjects.map(s => s._id);
+  }
+
+  const rawSchedule = await Timetable.find({
+    userId,
+    dayOfWeek: todayDayOfWeek,
+    subjectId: { $in: currentSemSubjectIds }
+  }).populate('subjectId').sort({ startMinutes: 1 }).lean();
 
   const todaySchedule = rawSchedule.map(lecture => ({
     _id: lecture._id.toString(),

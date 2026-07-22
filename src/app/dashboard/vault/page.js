@@ -1,45 +1,12 @@
-"use client";
-import React, { useEffect, useState } from 'react'
+import React from 'react';
 import { getVaultData } from '@/actions/vault';
-import { Loader2 } from 'lucide-react';
 import { SemDetail } from '@/components/vault/SemDetail';
 
-function VaultPage() {
-  const [totalSems, setTotalSems] = useState([]);
-  const [totalCredits, setTotalCredits] = useState(0);
-  const [userData, setUserData] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-
-    const fetchVault = async () => {
-      try {
-        const data = await getVaultData();
-        if (data) {
-          setTotalCredits(data.totalCredits);
-          setTotalSems(data.TotalSemesters);
-          setUserData(data.userData);
-        }
-
-      } catch (err) {
-        console.error("Failed to fetch vault data:", err);
-      }
-      finally {
-        setIsLoading(false)
-      }
-    }
-
-    fetchVault();
-  }, [])
-
-  
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-obsidian flex items-center justify-center">
-        <Loader2 className="animate-spin text-brand w-8 h-8" />
-      </div>
-    );
-  }
+export default async function VaultPage() {
+  const data = await getVaultData();
+  const totalSems = data?.TotalSemesters || [];
+  const totalCredits = data?.totalCredits || 0;
+  const userData = data?.userData || null;
 
   return (
     <div className='min-h-full bg-obsidian p-4 md:p-10 font-sans'>
@@ -71,7 +38,5 @@ function VaultPage() {
         ))}
       </div>
     </div>
-  )
+  );
 }
-
-export default VaultPage

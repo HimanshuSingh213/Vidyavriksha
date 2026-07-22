@@ -17,6 +17,11 @@ const jetbrainsMono = JetBrains_Mono({
 export const metadata = {
   title: "Vidyavriksha | Academic Command Center",
   description: "The Engineer's Academic Command Center",
+  icons: {
+    icon: "/logo.svg",
+    shortcut: "/logo.svg",
+    apple: "/logo.svg",
+  },
 };
 
 export default function RootLayout({ children }) {
