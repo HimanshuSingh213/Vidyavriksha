@@ -203,7 +203,11 @@ export default function CalendarUI({ weekStats, unscheduledSubjects = [], allSub
                 className="w-full text-[11px] sm:text-xs px-2 py-1 h-8 sm:h-10 bg-white/5 border border-white/10 rounded-lg text-primary appearance-none cursor-pointer"
               >
                 <option value="" className="bg-obsidian text-secondary"> Choose Subject </option>
-                {allSubjects.map((sub) => (
+                {[...allSubjects].sort((a, b) => {
+                  const aIsLab = /lab|practical|laboratory|workshop/i.test(`${a.name || ""} ${a.code || ""}`);
+                  const bIsLab = /lab|practical|laboratory|workshop/i.test(`${b.name || ""} ${b.code || ""}`);
+                  return aIsLab === bIsLab ? 0 : aIsLab ? 1 : -1;
+                }).map((sub) => (
                   <option key={sub.id} value={sub.id} className="bg-obsidian text-secondary">
                     {sub.name} ({sub.code})
                   </option>

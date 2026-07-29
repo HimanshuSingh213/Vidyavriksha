@@ -139,13 +139,20 @@ export async function getSemData(SemId) {
                 semester: SemId
             }).lean();
 
+            const checkIsLab = (sub) => {
+                const nameLower = (sub.name || "").toLowerCase();
+                const codeLower = (sub.code || "").toLowerCase();
+                return nameLower.includes("lab") || nameLower.includes("practical") || nameLower.includes("laboratory") || nameLower.includes("workshop") || codeLower.includes("lab") || codeLower.endsWith("p") || codeLower.endsWith("l");
+            };
+
             const formattedSubjects = allSubjects.map((sub) => ({
                 id: sub._id.toString(),
                 name: sub.name,
                 code: sub.code,
                 credits: sub.credits,
-                marks: sub.marks
-            }));
+                marks: sub.marks,
+                isLab: checkIsLab(sub)
+            })).sort((a, b) => (a.isLab === b.isLab ? 0 : a.isLab ? 1 : -1));
 
             const totalSubjects = formattedSubjects.length;
             let totalCredits = 0;
@@ -275,4 +282,134 @@ export const syncUserCGPAIfAuto = async (userId) => {
     revalidateTag(`dashboard-${userId}`);
 
     return currentCGPA;
+}
+
+export async function getDetailedSemesterMarksheet(semId) {
+    const session = await auth();
+    if (!session?.user?.id) return { success: false, error: "Unauthorized access" };
+    const userId = session.user.id;
+
+    await dbConnect();
+
+    try {
+        const semDoc = await Semester.findOne({ _id: semId, userId }).lean();
+        if (!semDoc) return { success: false, error: "Semester not found" };
+
+        const userDoc = await User.findById(userId).select("name email program currentCGPA").lean();
+        const subjects = await subject.find({ userId, semester: semId }).lean();
+
+        let totalObtainedMarks = 0;
+        let totalRegisteredCredits = 0;
+        let earnedCredits = 0;
+        let backCount = 0;
+        let qualityPointsEarned = 0;
+        let qualityPointsMax = 0;
+
+        const gradeCounts = {
+            O: 0,
+            "A+": 0,
+            A: 0,
+            "B+": 0,
+            B: 0,
+            C: 0,
+            P: 0,
+            F: 0
+        };
+
+        const formattedSubjects = subjects.map((sub) => {
+            const intMarks = Number(sub.marks?.internal) || 0;
+            const endMarks = Number(sub.marks?.endsem) || 0;
+            const totalMarks = intMarks + endMarks;
+            const credits = Number(sub.credits) || 0;
+
+            let grade = "F";
+            let gradePoint = 0;
+
+            if (totalMarks >= 90) { grade = "O"; gradePoint = 10; }
+            else if (totalMarks >= 75) { grade = "A+"; gradePoint = 9; }
+            else if (totalMarks >= 65) { grade = "A"; gradePoint = 8; }
+            else if (totalMarks >= 55) { grade = "B+"; gradePoint = 7; }
+            else if (totalMarks >= 50) { grade = "B"; gradePoint = 6; }
+            else if (totalMarks >= 45) { grade = "C"; gradePoint = 5; }
+            else if (totalMarks >= 40) { grade = "P"; gradePoint = 4; }
+            else { grade = "F"; gradePoint = 0; }
+
+            gradeCounts[grade] = (gradeCounts[grade] || 0) + 1;
+
+            totalObtainedMarks += totalMarks;
+            totalRegisteredCredits += credits;
+            qualityPointsEarned += (credits * gradePoint);
+            qualityPointsMax += (credits * 10);
+
+            if (totalMarks >= 40) {
+                earnedCredits += credits;
+            } else {
+                backCount++;
+            }
+
+            const nameLower = (sub.name || "").toLowerCase();
+            const codeLower = (sub.code || "").toLowerCase();
+            const isLab = nameLower.includes("lab") || nameLower.includes("practical") || nameLower.includes("laboratory") || nameLower.includes("workshop") || codeLower.includes("lab") || codeLower.endsWith("p") || codeLower.endsWith("l");
+
+            return {
+                id: sub._id.toString(),
+                name: sub.name,
+                code: sub.code,
+                credits,
+                marks: sub.marks,
+                totalMarks,
+                grade,
+                gradePoint,
+                isLab,
+                isBack: totalMarks < 40
+            };
+        }).sort((a, b) => (a.isLab === b.isLab ? 0 : a.isLab ? 1 : -1));
+
+        const maxPossibleMarks = subjects.length * 100;
+        const percentage = maxPossibleMarks > 0 ? Number(((totalObtainedMarks / maxPossibleMarks) * 100).toFixed(2)) : 0;
+        const sgpa = semDoc.sgpa ?? 0;
+
+        let academicStanding = "Pass Division";
+        if (backCount > 0) {
+            academicStanding = "Backlog / Re-appear";
+        } else if (sgpa >= 8.5) {
+            academicStanding = "First Class with Distinction";
+        } else if (sgpa >= 6.5) {
+            academicStanding = "First Class";
+        } else if (sgpa >= 4.0) {
+            academicStanding = "Pass Division";
+        } else {
+            academicStanding = "Under Evaluation";
+        }
+
+        return {
+            success: true,
+            data: {
+                semesterId: semDoc._id.toString(),
+                semesterNumber: semDoc.semester,
+                status: semDoc.status,
+                sgpa,
+                totalObtainedMarks,
+                maxPossibleMarks,
+                percentage,
+                totalRegisteredCredits,
+                earnedCredits,
+                backCount,
+                qualityPointsEarned,
+                qualityPointsMax,
+                academicStanding,
+                gradeCounts,
+                user: {
+                    name: userDoc?.name || "Student",
+                    email: userDoc?.email || "",
+                    program: userDoc?.program || "Bachelor of Technology",
+                    cgpa: userDoc?.currentCGPA || 0
+                },
+                subjects: formattedSubjects
+            }
+        };
+    } catch (err) {
+        console.error("Error in getDetailedSemesterMarksheet:", err);
+        return { success: false, error: "Failed to generate mark sheet." };
+    }
 }

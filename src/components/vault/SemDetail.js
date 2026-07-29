@@ -1,8 +1,9 @@
 "use client";
 import { getSemData } from "@/actions/semester";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, ExternalLink } from "lucide-react";
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import Link from "next/link";
 
 const isLabSubject = (sub) => {
     if (!sub) return false;
@@ -96,7 +97,12 @@ export function SemDetail(semData) {
             try {
                 const res = await getSemData(semData.semData._id);
                 if (res.success) {
-                    setSemSubjectData(res.data);
+                    const sortedData = [...res.data].sort((a, b) => {
+                        const aLab = a.isLab ?? isLabSubject(a);
+                        const bLab = b.isLab ?? isLabSubject(b);
+                        return aLab === bLab ? 0 : aLab ? 1 : -1;
+                    });
+                    setSemSubjectData(sortedData);
                     setSubjectNum(res.totalSubjects);
                     setCreditsNum(res.totalCredits);
                 } else if (!res.success) {
@@ -113,6 +119,13 @@ export function SemDetail(semData) {
     const backCount = semSubjectData.filter(
         (s) => ((s.marks?.internal ?? 0) + (s.marks?.endsem ?? 0)) < 40
     ).length;
+
+    const totalObtainedMarks = semSubjectData.reduce(
+        (acc, s) => acc + (s.marks?.internal ?? 0) + (s.marks?.endsem ?? 0),
+        0
+    );
+    const maxMarks = semSubjectData.length * 100;
+    const percentage = maxMarks > 0 ? ((totalObtainedMarks / maxMarks) * 100).toFixed(1) : 0;
 
     return (
         <>
@@ -152,14 +165,38 @@ export function SemDetail(semData) {
                         </p>
                     </div>
                 </div>
+
                 {/* Right */}
-                <div className="flex flex-col gap-0.5 justify-center">
-                    <p className="text-secondary text-[10px] text-center font-sans uppercase tracking-wide">
-                        sgpa
-                    </p>
-                    <h2 className="text-primary text-lg text-right font-bold font-mono">
-                        {semData.semData.sgpa}
-                    </h2>
+                <div className="flex items-center gap-3 sm:gap-5">
+                    {semSubjectData.length > 0 && (
+                        <div className="hidden sm:flex flex-col gap-0.5 text-right">
+                            <p className="text-secondary text-[10px] font-sans uppercase tracking-wide">
+                                Total Marks
+                            </p>
+                            <p className="text-xs font-mono font-semibold text-primary">
+                                {totalObtainedMarks} <span className="text-secondary text-[10px]">/ {maxMarks} ({percentage}%)</span>
+                            </p>
+                        </div>
+                    )}
+
+                    <div className="flex flex-col gap-0.5 justify-center">
+                        <p className="text-secondary text-[10px] text-center font-sans uppercase tracking-wide">
+                            sgpa
+                        </p>
+                        <h2 className="text-primary text-lg text-right font-bold font-mono">
+                            {semData.semData.sgpa}
+                        </h2>
+                    </div>
+
+                    <Link
+                        href={`/dashboard/vault/${semData.semData._id}`}
+                        onClick={(e) => e.stopPropagation()}
+                        className="px-2.5 py-1.5 rounded-lg bg-white/5 hover:bg-brand/20 border border-white/10 text-secondary hover:text-brand transition-all flex items-center gap-1 text-[11px] font-medium"
+                        title="View Official Full Marksheet"
+                    >
+                        <span className="hidden md:inline">Marksheet</span>
+                        <ExternalLink className="w-3.5 h-3.5" />
+                    </Link>
                 </div>
             </motion.div>
 
@@ -247,13 +284,13 @@ export function SemDetail(semData) {
                                                         {subject.marks?.endsem ?? "-"}
                                                     </p>
                                                 </div>
-                                                <div className="text-center pl-3 border-l border-white/10">
+                                                <div className="text-center pl-3 border-l border-white/10 shrink-0 whitespace-nowrap">
                                                     <p className="text-secondary text-[8px] uppercase">
                                                         Grade
                                                     </p>
-                                                    <p className={`text-xs font-mono font-bold ${gradeInfo.colorClass}`}>
+                                                    <p className={`text-xs font-mono font-bold whitespace-nowrap ${gradeInfo.colorClass}`}>
                                                         {gradeInfo.grade}{" "}
-                                                        <span className="text-[10px] opacity-75">
+                                                        <span className="text-[10px] opacity-75 whitespace-nowrap">
                                                             ({gradeInfo.gradePoint} GP)
                                                         </span>
                                                     </p>
