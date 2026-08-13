@@ -7,7 +7,7 @@ import { Timetable } from "@/models/timetable.model";
 import { User } from "@/models/user.model";
 import { Semester } from "@/models/semester.model";
 import { subject } from "@/models/subject.model";
-import { unstable_cache } from "next/cache";
+
 
 const fetchDashboardFromDb = async (userId, todayDayOfWeek, startOfDayTime, endOfDayTime) => {
   await dbConnect();
@@ -42,14 +42,7 @@ const fetchDashboardFromDb = async (userId, todayDayOfWeek, startOfDayTime, endO
 };
 
 const getCachedDashboard = (userId, todayDayOfWeek, startOfDayTime, endOfDayTime, startOfDayIso) => {
-  return unstable_cache(
-    async () => fetchDashboardFromDb(userId, todayDayOfWeek, startOfDayTime, endOfDayTime),
-    [`dashboard-${userId}`, startOfDayIso],
-    {
-      tags: [`dashboard-${userId}`],
-      revalidate: 86400
-    }
-  )();
+  return fetchDashboardFromDb(userId, todayDayOfWeek, startOfDayTime, endOfDayTime);
 };
 
 export const getDashboardData = async () => {

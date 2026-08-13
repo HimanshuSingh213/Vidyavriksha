@@ -199,7 +199,16 @@ export default function CalendarUI({ weekStats, unscheduledSubjects = [], allSub
               <select
                 required
                 value={scheduleForm.subjectId}
-                onChange={(e) => setScheduleForm(prev => ({ ...prev, subjectId: e.target.value }))}
+                onChange={(e) => {
+                  const subjectId = e.target.value;
+                  const selectedSub = allSubjects.find(sub => sub.id === subjectId);
+                  setScheduleForm(prev => ({
+                    ...prev,
+                    subjectId,
+                    room: selectedSub?.defaultRoom || prev.room,
+                    teacher: selectedSub?.defaultTeacher || prev.teacher
+                  }));
+                }}
                 className="w-full text-[11px] sm:text-xs px-2 py-1 h-8 sm:h-10 bg-white/5 border border-white/10 rounded-lg text-primary appearance-none cursor-pointer"
               >
                 <option value="" className="bg-obsidian text-secondary"> Choose Subject </option>
@@ -489,11 +498,11 @@ export default function CalendarUI({ weekStats, unscheduledSubjects = [], allSub
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                     <div>
                       <label className="text-[9px] md:text-[10px] text-secondary uppercase block mb-0.5">Room</label>
-                      <input type="text" name="room" placeholder="e.g. Room 302" className="w-full text-[11px] sm:text-xs px-2 py-1 h-7 sm:h-8 bg-white/5 border border-white/10 rounded-lg text-primary" />
+                      <input type="text" name="room" defaultValue={sub.defaultRoom} placeholder="e.g. Room 302" className="w-full text-[11px] sm:text-xs px-2 py-1 h-7 sm:h-8 bg-white/5 border border-white/10 rounded-lg text-primary" />
                     </div>
                     <div>
                       <label className="text-[9px] md:text-[10px] text-secondary uppercase block mb-0.5">Instructor</label>
-                      <input type="text" name="teacher" placeholder="Teacher Name" className="w-full text-[11px] sm:text-xs px-2 py-1 h-7 sm:h-8 bg-white/5 border border-white/10 rounded-lg text-primary" />
+                      <input type="text" name="teacher" defaultValue={sub.defaultTeacher} placeholder="Teacher Name" className="w-full text-[11px] sm:text-xs px-2 py-1 h-7 sm:h-8 bg-white/5 border border-white/10 rounded-lg text-primary" />
                     </div>
                   </div>
                   <button type="submit" disabled={isSaving} className="w-full h-7 sm:h-8 text-[11px] sm:text-xs font-semibold text-obsidian bg-primary rounded-lg hover:bg-primary/90 transition-colors duration-200">

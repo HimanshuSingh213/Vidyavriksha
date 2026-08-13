@@ -31,6 +31,14 @@ const subjectSchema = new mongoose.Schema({
             default: 0
         }
     },
+    defaultRoom: {
+        type: String,
+        default: ""
+    },
+    defaultTeacher: {
+        type: String,
+        default: ""
+    },
     semester: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Semester",

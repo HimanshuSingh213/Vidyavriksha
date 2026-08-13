@@ -12,8 +12,21 @@ const isLabSubject = (sub) => {
     return name.includes("lab") || name.includes("practical") || name.includes("laboratory") || name.includes("workshop") || code.includes("lab") || code.endsWith("p") || code.endsWith("l");
 };
 
-const getGradeInfo = (totalMarks) => {
-    const marks = Number(totalMarks) || 0;
+const getGradeInfo = (marksObj) => {
+    const internal = Number(marksObj?.internal) || 0;
+    const endsem = Number(marksObj?.endsem) || 0;
+    const marks = internal + endsem;
+
+    if (internal === 0 && endsem === 0) {
+        return {
+            grade: "N/A",
+            gradePoint: 0,
+            colorClass: "text-zinc-400",
+            lineBg: "bg-zinc-500 shadow-[0_0_5px_rgba(161,161,170,0.3)]",
+            isBack: false
+        };
+    }
+
     if (marks >= 90) {
         return {
             grade: "O",
@@ -215,7 +228,7 @@ export function SemDetail(semData) {
                                     (subject.marks?.internal ?? 0) +
                                     (subject.marks?.endsem ?? 0);
                                 const percent = Math.min(totalMarks, 100);
-                                const gradeInfo = getGradeInfo(totalMarks);
+                                const gradeInfo = getGradeInfo(subject.marks);
 
                                 return (
                                     <motion.div

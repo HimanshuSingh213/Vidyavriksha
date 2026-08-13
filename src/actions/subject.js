@@ -106,6 +106,8 @@ export async function addSubject(subjectData){
             code: subjectData.code,
             credits: subjectData.credits || 0,
             semester: subjectData.semester,
+            defaultRoom: subjectData.room || "",
+            defaultTeacher: subjectData.teacher || "",
             userId: userId
         });
 

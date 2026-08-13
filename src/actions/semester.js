@@ -6,7 +6,7 @@ import { Semester } from "@/models/semester.model";
 import { subject } from "@/models/subject.model";
 import { Timetable } from "@/models/timetable.model";
 import { User } from "@/models/user.model";
-import { revalidateTag, unstable_cache } from "next/cache";
+import { revalidateTag } from "next/cache";
 import { getGradePointFromMarks } from "./subject";
 
 export async function getSemesterSummaries() {
@@ -14,26 +14,18 @@ export async function getSemesterSummaries() {
     if (!session?.user?.id) return [];
     const userId = session.user.id;
 
-    const getCachedSummaries = unstable_cache(
-        async () => {
-            await dbConnect();
+    await dbConnect();
 
-            const rawSemData = await Semester.find({ userId: session.user.id })
-                .sort({ semester: 1 })
-                .lean();
+    const rawSemData = await Semester.find({ userId: session.user.id })
+        .sort({ semester: 1 })
+        .lean();
 
-            return rawSemData.map((sem) => ({
-                id: sem._id.toString(),
-                semester: sem.semester,
-                sgpa: sem.sgpa ?? 0,
-                status: sem.status
-            }));
-        },
-        [`semester-summaries-${userId}`], // Unique Key
-        { tags: [`semester-${userId}`], revalidate: 86400 }
-    )
-
-    return await getCachedSummaries();
+    return rawSemData.map((sem) => ({
+        id: sem._id.toString(),
+        semester: sem.semester,
+        sgpa: sem.sgpa ?? 0,
+        status: sem.status
+    }));
 }
 
 export async function addingSemester(semNum) {
@@ -131,41 +123,33 @@ export async function getSemData(SemId) {
 
     const userId = session?.user?.id;
 
-    const getCachedSemData = unstable_cache(
-        async () => {
-            await dbConnect();
-            const allSubjects = await subject.find({
-                userId: userId,
-                semester: SemId
-            }).lean();
-
-            const checkIsLab = (sub) => {
-                const nameLower = (sub.name || "").toLowerCase();
-                const codeLower = (sub.code || "").toLowerCase();
-                return nameLower.includes("lab") || nameLower.includes("practical") || nameLower.includes("laboratory") || nameLower.includes("workshop") || codeLower.includes("lab") || codeLower.endsWith("p") || codeLower.endsWith("l");
-            };
-
-            const formattedSubjects = allSubjects.map((sub) => ({
-                id: sub._id.toString(),
-                name: sub.name,
-                code: sub.code,
-                credits: sub.credits,
-                marks: sub.marks,
-                isLab: checkIsLab(sub)
-            })).sort((a, b) => (a.isLab === b.isLab ? 0 : a.isLab ? 1 : -1));
-
-            const totalSubjects = formattedSubjects.length;
-            let totalCredits = 0;
-            formattedSubjects.forEach((sub) => totalCredits += sub.credits);
-
-            return { success: true, data: formattedSubjects, totalSubjects, totalCredits };
-        },
-        [`sem-data-${userId}-${SemId}`], // Unique Key per semester
-        { tags: [`semester-${userId}`], revalidate: 86400 }
-    );
-
     try {
-        return await getCachedSemData();
+        await dbConnect();
+        const allSubjects = await subject.find({
+            userId: userId,
+            semester: SemId
+        }).lean();
+
+        const checkIsLab = (sub) => {
+            const nameLower = (sub.name || "").toLowerCase();
+            const codeLower = (sub.code || "").toLowerCase();
+            return nameLower.includes("lab") || nameLower.includes("practical") || nameLower.includes("laboratory") || nameLower.includes("workshop") || codeLower.includes("lab") || codeLower.endsWith("p") || codeLower.endsWith("l");
+        };
+
+        const formattedSubjects = allSubjects.map((sub) => ({
+            id: sub._id.toString(),
+            name: sub.name,
+            code: sub.code,
+            credits: sub.credits,
+            marks: sub.marks,
+            isLab: checkIsLab(sub)
+        })).sort((a, b) => (a.isLab === b.isLab ? 0 : a.isLab ? 1 : -1));
+
+        const totalSubjects = formattedSubjects.length;
+        let totalCredits = 0;
+        formattedSubjects.forEach((sub) => totalCredits += sub.credits);
+
+        return { success: true, data: formattedSubjects, totalSubjects, totalCredits };
     } catch (err) {
         return { success: false, error: "Failed to fetch subjects." };
     }
@@ -178,22 +162,14 @@ export async function getCGPAData() {
 
     const userId = session?.user?.id;
 
-    const getCachedCGPA = unstable_cache(
-        async () => {
-            await dbConnect();
-            const allSems = await Semester.find({ userId }).sort({ semester: 1 }).lean();
-
-            return allSems.map((sem) => ({
-                Name: `Sem ${sem.semester}`,
-                sgpa: sem.sgpa ?? 0
-            }));
-        },
-        [`cgpa-data-${userId}`],
-        { tags: [`analytics-${userId}`, `semester-${userId}`], revalidate: 86400 }
-    );
-
     try {
-        const Data = await getCachedCGPA();
+        await dbConnect();
+        const allSems = await Semester.find({ userId }).sort({ semester: 1 }).lean();
+
+        const Data = allSems.map((sem) => ({
+            Name: `Sem ${sem.semester}`,
+            sgpa: sem.sgpa ?? 0
+        }));
         return { success: true, data: Data };
     } catch (err) {
         return { success: false, error: "Failed to fetch semester Data." };
@@ -215,10 +191,13 @@ export const updateSemesterSGPA = async (SemId, userId) => {
 
     for (const sub of subjects) {
         const credits = Number(sub.credits) || 0;
-        const marks = (Number(sub.marks?.internal) || 0) + (Number(sub.marks?.endsem) || 0);
-        const gradePoint = await getGradePointFromMarks(marks);
+        const intMarks = Number(sub.marks?.internal) || 0;
+        const endMarks = Number(sub.marks?.endsem) || 0;
+        const marks = intMarks + endMarks;
+        const isEvaluated = intMarks > 0 || endMarks > 0;
 
-        if (credits > 0) {
+        if (credits > 0 && isEvaluated) {
+            const gradePoint = await getGradePointFromMarks(marks);
             totalPoints += (gradePoint * credits);
             totalCredits += credits;
         }
@@ -232,6 +211,7 @@ export const updateSemesterSGPA = async (SemId, userId) => {
 }
 
 export const calculateUserCGPA = async (userId, currentSem) => {
+    // Ordinance 11 CGPA is based on all past semesters (excluding the ongoing current one).
     const pastSems = await Semester.find({
         userId: userId,
         semester: { $lt: currentSem }
@@ -241,18 +221,32 @@ export const calculateUserCGPA = async (userId, currentSem) => {
     let totalCreditsOverall = 0;
 
     for (const sem of pastSems) {
-        let currentSgpa = sem.sgpa;
-
-        if (!currentSgpa || currentSgpa === 0) {
-            currentSgpa = await updateSemesterSGPA(sem._id, userId);
-        }
-
+        // According to GGSIPU Ordinance 11, CGPA is the exact sum of (Credits × Grade Point) 
+        // across all semesters divided by total credits. We should NOT use the rounded SGPA.
         const subjects = await subject.find({ userId: userId, semester: sem._id }).lean();
-        const semCredits = subjects.reduce((sum, sub) => sum + (sub.credits || 0), 0);
+        
+        for (const sub of subjects) {
+            const credits = Number(sub.credits) || 0;
+            const intMarks = Number(sub.marks?.internal) || 0;
+            const endMarks = Number(sub.marks?.endsem) || 0;
+            const marks = intMarks + endMarks;
+            const isEvaluated = intMarks > 0 || endMarks > 0;
+            
+            if (credits > 0 && isEvaluated) {
+                // Re-calculate grade point instead of relying on rounded intermediate values
+                let gradePoint = 0;
+                if (marks >= 90) gradePoint = 10;
+                else if (marks >= 75) gradePoint = 9;
+                else if (marks >= 65) gradePoint = 8;
+                else if (marks >= 55) gradePoint = 7;
+                else if (marks >= 50) gradePoint = 6;
+                else if (marks >= 45) gradePoint = 5;
+                else if (marks >= 40) gradePoint = 4;
+                else gradePoint = 0;
 
-        if (semCredits > 0 && currentSgpa > 0) {
-            totalWeightedPoints += (currentSgpa * semCredits);
-            totalCreditsOverall += semCredits;
+                totalWeightedPoints += (gradePoint * credits);
+                totalCreditsOverall += credits;
+            }
         }
     }
 
@@ -324,8 +318,13 @@ export async function getDetailedSemesterMarksheet(semId) {
 
             let grade = "F";
             let gradePoint = 0;
+            let isEvaluated = true;
 
-            if (totalMarks >= 90) { grade = "O"; gradePoint = 10; }
+            if (intMarks === 0 && endMarks === 0) {
+                grade = "N/A";
+                gradePoint = 0;
+                isEvaluated = false;
+            } else if (totalMarks >= 90) { grade = "O"; gradePoint = 10; }
             else if (totalMarks >= 75) { grade = "A+"; gradePoint = 9; }
             else if (totalMarks >= 65) { grade = "A"; gradePoint = 8; }
             else if (totalMarks >= 55) { grade = "B+"; gradePoint = 7; }
@@ -336,16 +335,19 @@ export async function getDetailedSemesterMarksheet(semId) {
 
             gradeCounts[grade] = (gradeCounts[grade] || 0) + 1;
 
-            totalObtainedMarks += totalMarks;
-            totalRegisteredCredits += credits;
-            qualityPointsEarned += (credits * gradePoint);
-            qualityPointsMax += (credits * 10);
-
-            if (totalMarks >= 40) {
-                earnedCredits += credits;
-            } else {
-                backCount++;
+            if (isEvaluated) {
+                totalObtainedMarks += totalMarks;
+                qualityPointsEarned += (credits * gradePoint);
+                qualityPointsMax += (credits * 10);
+                
+                if (totalMarks >= 40) {
+                    earnedCredits += credits;
+                } else {
+                    backCount++;
+                }
             }
+
+            totalRegisteredCredits += credits;
 
             const nameLower = (sub.name || "").toLowerCase();
             const codeLower = (sub.code || "").toLowerCase();
@@ -361,11 +363,12 @@ export async function getDetailedSemesterMarksheet(semId) {
                 grade,
                 gradePoint,
                 isLab,
-                isBack: totalMarks < 40
+                isBack: isEvaluated ? totalMarks < 40 : false
             };
         }).sort((a, b) => (a.isLab === b.isLab ? 0 : a.isLab ? 1 : -1));
 
-        const maxPossibleMarks = subjects.length * 100;
+        const evaluatedSubjectsCount = formattedSubjects.filter(s => s.grade !== "N/A").length;
+        const maxPossibleMarks = evaluatedSubjectsCount * 100;
         const percentage = maxPossibleMarks > 0 ? Number(((totalObtainedMarks / maxPossibleMarks) * 100).toFixed(2)) : 0;
         const sgpa = semDoc.sgpa ?? 0;
 

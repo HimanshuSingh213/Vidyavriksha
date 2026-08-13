@@ -3,7 +3,7 @@
 import { auth } from "@/auth";
 import dbConnect from "@/lib/db";
 import { User } from "@/models/user.model";
-import { revalidatePath, revalidateTag, unstable_cache } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { calculateUserCGPA } from "./semester";
 
 export async function getUserSettings() {
@@ -11,17 +11,9 @@ export async function getUserSettings() {
     if (!session?.user?.id) return null;
     const userId = session.user.id;
 
-    const getCachedSettings = unstable_cache(
-        async () => {
-            await dbConnect();
-            const user = await User.findById(userId).lean();
-            return JSON.parse(JSON.stringify(user));
-        },
-        [`settings-${userId}`], // Unique Cache Key
-        { tags: [`settings-${userId}`], revalidate: 86400 } // Invalidation Tag
-    );
-
-    return await getCachedSettings();
+    await dbConnect();
+    const user = await User.findById(userId).lean();
+    return JSON.parse(JSON.stringify(user));
 }
 
 export async function updateUserSettings(data) {
@@ -75,9 +67,9 @@ export async function updateUserSettings(data) {
 
         revalidateTag(`settings-${userId}`);
         revalidateTag(`vault-${userId}`);
+        revalidateTag(`dashboard-${userId}`);
 
-        revalidatePath("/dashboard/settings");
-        revalidatePath("/dashboard/vault");
+        revalidatePath("/dashboard", "layout");
 
         return {
             success: true,
@@ -92,6 +84,4 @@ export async function updateUserSettings(data) {
             message: err.message || "Failed to update settings"
         };
     }
-
 }
-

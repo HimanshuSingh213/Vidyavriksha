@@ -91,7 +91,9 @@ const CalendarWeek = async () => {
     const allSubjectsFormatted = subjects.map(sub => ({
         id: sub._id.toString(),
         name: sub.name,
-        code: sub.code
+        code: sub.code,
+        defaultRoom: sub.defaultRoom || "",
+        defaultTeacher: sub.defaultTeacher || ""
     }));
 
     const weekStats = weekDays.map((dayInfo) => {
