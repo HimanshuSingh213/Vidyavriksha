@@ -16,6 +16,9 @@ export async function getSemesterSummaries() {
 
     await dbConnect();
 
+    const user = await User.findById(userId).select("currentSem").lean();
+    const currentSem = user?.currentSem || 1;
+
     const rawSemData = await Semester.find({ userId: session.user.id })
         .sort({ semester: 1 })
         .lean();
@@ -24,7 +27,7 @@ export async function getSemesterSummaries() {
         id: sem._id.toString(),
         semester: sem.semester,
         sgpa: sem.sgpa ?? 0,
-        status: sem.status
+        status: sem.semester < currentSem ? "Completed" : "Ongoing"
     }));
 }
 
@@ -194,9 +197,8 @@ export const updateSemesterSGPA = async (SemId, userId) => {
         const intMarks = Number(sub.marks?.internal) || 0;
         const endMarks = Number(sub.marks?.endsem) || 0;
         const marks = intMarks + endMarks;
-        const isEvaluated = intMarks > 0 || endMarks > 0;
 
-        if (credits > 0 && isEvaluated) {
+        if (credits > 0) {
             const gradePoint = await getGradePointFromMarks(marks);
             totalPoints += (gradePoint * credits);
             totalCredits += credits;
@@ -230,9 +232,8 @@ export const calculateUserCGPA = async (userId, currentSem) => {
             const intMarks = Number(sub.marks?.internal) || 0;
             const endMarks = Number(sub.marks?.endsem) || 0;
             const marks = intMarks + endMarks;
-            const isEvaluated = intMarks > 0 || endMarks > 0;
             
-            if (credits > 0 && isEvaluated) {
+            if (credits > 0) {
                 // Re-calculate grade point instead of relying on rounded intermediate values
                 let gradePoint = 0;
                 if (marks >= 90) gradePoint = 10;
@@ -289,8 +290,10 @@ export async function getDetailedSemesterMarksheet(semId) {
         const semDoc = await Semester.findOne({ _id: semId, userId }).lean();
         if (!semDoc) return { success: false, error: "Semester not found" };
 
-        const userDoc = await User.findById(userId).select("name email program currentCGPA").lean();
+        const userDoc = await User.findById(userId).select("name email program currentCGPA currentSem").lean();
         const subjects = await subject.find({ userId, semester: semId }).lean();
+        
+        const dynamicStatus = semDoc.semester < (userDoc?.currentSem || 1) ? "Completed" : "Ongoing";
 
         let totalObtainedMarks = 0;
         let totalRegisteredCredits = 0;
@@ -390,7 +393,7 @@ export async function getDetailedSemesterMarksheet(semId) {
             data: {
                 semesterId: semDoc._id.toString(),
                 semesterNumber: semDoc.semester,
-                status: semDoc.status,
+                status: dynamicStatus,
                 sgpa,
                 totalObtainedMarks,
                 maxPossibleMarks,

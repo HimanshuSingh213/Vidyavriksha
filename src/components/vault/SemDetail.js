@@ -130,14 +130,26 @@ export function SemDetail(semData) {
     }, []);
 
     const backCount = semSubjectData.filter(
-        (s) => ((s.marks?.internal ?? 0) + (s.marks?.endsem ?? 0)) < 40
+        (s) => {
+            const intMarks = s.marks?.internal ?? 0;
+            const endMarks = s.marks?.endsem ?? 0;
+            const isEvaluated = intMarks > 0 || endMarks > 0;
+            return isEvaluated && (intMarks + endMarks) < 40;
+        }
     ).length;
 
-    const totalObtainedMarks = semSubjectData.reduce(
-        (acc, s) => acc + (s.marks?.internal ?? 0) + (s.marks?.endsem ?? 0),
-        0
-    );
-    const maxMarks = semSubjectData.length * 100;
+    let totalObtainedMarks = 0;
+    let evaluatedCount = 0;
+    semSubjectData.forEach(s => {
+        const intMarks = s.marks?.internal ?? 0;
+        const endMarks = s.marks?.endsem ?? 0;
+        if (intMarks > 0 || endMarks > 0) {
+            totalObtainedMarks += (intMarks + endMarks);
+            evaluatedCount++;
+        }
+    });
+
+    const maxMarks = evaluatedCount * 100;
     const percentage = maxMarks > 0 ? ((totalObtainedMarks / maxMarks) * 100).toFixed(1) : 0;
 
     return (

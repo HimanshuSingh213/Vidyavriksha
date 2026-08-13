@@ -5,6 +5,7 @@ import dbConnect from "@/lib/db";
 import { redirect } from "next/navigation";
 import { Semester } from "@/models/semester.model";
 import { subject } from "@/models/subject.model";
+import { User } from "@/models/user.model";
 
 export default async function stackedMarksData(SemId) {
     const session = await auth();
@@ -133,13 +134,15 @@ export const fetchSGPAProgressionChart = async () => {
     try {
         await dbConnect();
 
-            const rawSemesters = await Semester.find({ userId }).sort({ semester: 1 }).lean();
+        const user = await User.findById(userId).select("currentSem").lean();
+        const currentSem = user?.currentSem || 1;
+        const rawSemesters = await Semester.find({ userId }).sort({ semester: 1 }).lean();
 
-            const sgpaProgressionData = rawSemesters.map(sem => ({
-                semester: `Sem ${sem.semester}`,
-                sgpa: sem.sgpa || 0,
-                status: sem.status || "Ongoing"
-            }));
+        const sgpaProgressionData = rawSemesters.map(sem => ({
+            semester: `Sem ${sem.semester}`,
+            sgpa: sem.sgpa || 0,
+            status: sem.semester < currentSem ? "Completed" : "Ongoing"
+        }));
 
         return { success: true, data: sgpaProgressionData };
 
