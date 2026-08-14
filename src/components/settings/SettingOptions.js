@@ -18,7 +18,14 @@ export default function SettingOptions({ session }) {
         currentCGPA, setCurrentCGPA,
         currentSem, setCurrentSem,
         isManualCGPA: savedIsManualCGPA,
-        setIsManualCGPA: setSavedIsManualCGPA
+        setIsManualCGPA: setSavedIsManualCGPA,
+        // Update methods from UserContext
+        updateCGPA,
+        updateSemester,
+        updateTargetCGPA,
+        updateUniversityScale,
+        updateAutoCalculateCGPA,
+        updateProgramName
     } = useUser();
 
     // Local state for form fields
@@ -120,16 +127,18 @@ export default function SettingOptions({ session }) {
                 return;
             }
 
-            if (setProgram) setProgram(localProgram);
-            if (setTargetCGPA) setTargetCGPA(Number(localTargetCGPA));
-            if (setUniversityScale) setUniversityScale(Number(localUnivScale));
-            if (setCurrentSem) setCurrentSem(Number(localCurrentSem));
-            if (setCurrentCGPA) {
-                const newCGPA = res.updatedCGPA !== undefined ? res.updatedCGPA : finalCGPA;
-                setCurrentCGPA(newCGPA);
-                setLocalCurrentCGPA(newCGPA);
-            }
-            if (setSavedIsManualCGPA) setSavedIsManualCGPA(isManualCGPA);
+            // Use update methods from UserContext to sync state
+            updateProgramName(localProgram);
+            updateTargetCGPA(Number(localTargetCGPA));
+            updateUniversityScale(Number(localUnivScale));
+            updateSemester(Number(localCurrentSem));
+
+            const newCGPA = res.updatedCGPA !== undefined ? res.updatedCGPA : finalCGPA;
+            updateCGPA(newCGPA);
+            setLocalCurrentCGPA(newCGPA);
+
+            updateAutoCalculateCGPA(!isManualCGPA);
+            setSavedIsManualCGPA(isManualCGPA);
 
             setToastConfig({
                 isOpen: true,

@@ -9,7 +9,7 @@ import Toast from '@/components/ui/Toast';
 
 function SemData() {
 
-    const { selectedSem } = useUser();
+    const { selectedSem, updateCGPA, updateSemester, updateAutoCalculateCGPA, updateTargetCGPA } = useUser();
     const [subjects, setSubjects] = useState([]);
     const [isOpen, setIsOpen] = useState(false);
     
@@ -90,6 +90,12 @@ function SemData() {
             });
 
             if (response && response.success) {
+                // Sync context with updated values from server
+                if (response.updatedCGPA !== undefined) updateCGPA(response.updatedCGPA);
+                if (response.updatedCurrentSem !== undefined) updateSemester(response.updatedCurrentSem);
+                if (response.updatedAutoCalculateCGPA !== undefined) updateAutoCalculateCGPA(response.updatedAutoCalculateCGPA);
+                if (response.updatedTargetCGPA !== undefined) updateTargetCGPA(response.updatedTargetCGPA);
+
                 setToastConfig({
                     isOpen: true,
                     title: "Success",
@@ -98,13 +104,13 @@ function SemData() {
                 });
 
                 // Reset form
-                isAddingSubject({ 
-                    name: "", 
-                    code: "", 
+                isAddingSubject({
+                    name: "",
+                    code: "",
                     credits: 3
                 });
                 setIsOpen(false);
-                
+
                 // Refresh data
                 await refreshData();
             } else {

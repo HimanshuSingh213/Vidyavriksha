@@ -6,7 +6,7 @@ import { Semester } from "@/models/semester.model";
 import { subject } from "@/models/subject.model";
 import { Timetable } from "@/models/timetable.model";
 import { User } from "@/models/user.model";
-import { revalidateTag } from "next/cache";
+import { revalidatePath } from "next/cache";
 import { getGradePointFromMarks } from "./subject";
 
 export async function getSemesterSummaries() {
@@ -53,14 +53,21 @@ export async function addingSemester(semNum) {
             semester: semNum
         })
 
-        revalidateTag(`semester-${userId}`);
-        revalidateTag(`analytics-${userId}`);
-        revalidateTag(`vault-${userId}`);
+        const updatedCGPA = await syncUserCGPAIfAuto(userId);
+        const user = await User.findById(userId).select("currentSem currentCGPA autoCalculateCGPA targetCGPA").lean();
+
+        revalidatePath("/dashboard", "layout");
+        revalidatePath("/dashboard/analytics", "page");
+        revalidatePath("/dashboard/simulator", "page");
 
         return {
             success: true,
             message: `Semester ${semNum} added successfully!`,
-            id: newSem._id.toString()
+            id: newSem._id.toString(),
+            updatedCGPA: updatedCGPA ?? user?.currentCGPA ?? 0,
+            updatedCurrentSem: user?.currentSem ?? 1,
+            updatedAutoCalculateCGPA: user?.autoCalculateCGPA ?? true,
+            updatedTargetCGPA: user?.targetCGPA ?? 9.0
         };
 
     } catch (err) {
@@ -105,14 +112,21 @@ export async function deleteSemester(SemId) {
             return { success: false, error: "Semester not found or unauthorized." };
         }
 
-        revalidateTag(`semester-${userId}`);
-        revalidateTag(`analytics-${userId}`);
-        revalidateTag(`vault-${userId}`);
-        revalidateTag(`dashboard-${userId}`);
+        const updatedCGPA = await syncUserCGPAIfAuto(userId);
+        const user = await User.findById(userId).select("currentSem currentCGPA autoCalculateCGPA targetCGPA").lean();
 
-        await syncUserCGPAIfAuto(userId);
+        revalidatePath("/dashboard", "layout");
+        revalidatePath("/dashboard/analytics", "page");
+        revalidatePath("/dashboard/simulator", "page");
 
-        return { success: true, message: "Semester and all related data deleted successfully!" };
+        return {
+            success: true,
+            message: "Semester and all related data deleted successfully!",
+            updatedCGPA: updatedCGPA ?? user?.currentCGPA ?? 0,
+            updatedCurrentSem: user?.currentSem ?? 1,
+            updatedAutoCalculateCGPA: user?.autoCalculateCGPA ?? true,
+            updatedTargetCGPA: user?.targetCGPA ?? 9.0
+        };
 
     } catch (err) {
         return { success: false, error: "Failed to delete semester" };
@@ -272,9 +286,7 @@ export const syncUserCGPAIfAuto = async (userId) => {
 
     await User.findByIdAndUpdate(userId, { currentCGPA });
 
-    revalidateTag(`settings-${userId}`);
-    revalidateTag(`vault-${userId}`);
-    revalidateTag(`dashboard-${userId}`);
+    revalidatePath("/dashboard", "layout");
 
     return currentCGPA;
 }

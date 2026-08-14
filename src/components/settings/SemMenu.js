@@ -16,7 +16,7 @@ export default function SemMenu() {
     const alreadyAddedSems = semesters.map((sem) => sem.semester);
     const availableSems = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].filter((num) => !alreadyAddedSems.includes(num));
 
-    const { selectedSem, setSelectedSem, currentSem } = useUser();
+    const { selectedSem, setSelectedSem, currentSem, updateCGPA, updateSemester, updateAutoCalculateCGPA, updateTargetCGPA } = useUser();
     const [Sem, addSem] = useState(1);
     const [addSemLoading, setAddSemLoading] = useState(false);
 
@@ -99,6 +99,12 @@ export default function SemMenu() {
             const response = await addingSemester(Sem);
 
             if (response.success) {
+                // Sync context with updated values from server
+                if (response.updatedCGPA !== undefined) updateCGPA(response.updatedCGPA);
+                if (response.updatedCurrentSem !== undefined) updateSemester(response.updatedCurrentSem);
+                if (response.updatedAutoCalculateCGPA !== undefined) updateAutoCalculateCGPA(response.updatedAutoCalculateCGPA);
+                if (response.updatedTargetCGPA !== undefined) updateTargetCGPA(response.updatedTargetCGPA);
+
                 setToastConfig({
                     isOpen: true,
                     title: "Success",
@@ -153,6 +159,12 @@ export default function SemMenu() {
             setModalConfig(prev => ({ ...prev, confirmDisabled: true, description: "Deleting..." }));
             const response = await deleteSemester(semId);
             if (response && response.success) {
+                // Sync context with updated values from server
+                if (response.updatedCGPA !== undefined) updateCGPA(response.updatedCGPA);
+                if (response.updatedCurrentSem !== undefined) updateSemester(response.updatedCurrentSem);
+                if (response.updatedAutoCalculateCGPA !== undefined) updateAutoCalculateCGPA(response.updatedAutoCalculateCGPA);
+                if (response.updatedTargetCGPA !== undefined) updateTargetCGPA(response.updatedTargetCGPA);
+
                 setModalConfig(prev => ({ ...prev, isOpen: false }));
                 setToastConfig({
                     isOpen: true,

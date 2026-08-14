@@ -4,8 +4,9 @@ import { auth } from "@/auth";
 import dbConnect from "@/lib/db";
 import { subject } from "@/models/subject.model";
 import { Timetable } from "@/models/timetable.model";
+import { User } from "@/models/user.model";
 import { syncUserCGPAIfAuto, updateSemesterSGPA } from "./semester";
-import { revalidateTag } from "next/cache";
+import { revalidatePath } from "next/cache";
 
 function parseTimeToMinutes(timeStr) {
     if (!timeStr) return 0;
@@ -42,12 +43,25 @@ export default async function updateSubjectMarks(SubId, updatedMarks) {
             return { success: false, error: "Subject not found or you don't have permission." };
         }
 
-        await updateSemesterSGPA(result.semester, userId);
-        await syncUserCGPAIfAuto(userId);
-        revalidateTag(`analytics-${userId}`);
-        revalidateTag(`semester-${userId}`);
+        const updatedSGPA = await updateSemesterSGPA(result.semester, userId);
+        const updatedCGPA = await syncUserCGPAIfAuto(userId);
 
-        return { success: true, message: "Marks updated successfully!" };
+        // Get updated user settings for currentSem
+        const user = await User.findById(userId).select("currentSem currentCGPA autoCalculateCGPA targetCGPA").lean();
+
+        revalidatePath("/dashboard", "layout");
+        revalidatePath("/dashboard/analytics", "page");
+        revalidatePath("/dashboard/simulator", "page");
+
+        return {
+            success: true,
+            message: "Marks updated successfully!",
+            updatedSGPA,
+            updatedCGPA: updatedCGPA ?? user?.currentCGPA ?? 0,
+            updatedCurrentSem: user?.currentSem ?? 1,
+            updatedAutoCalculateCGPA: user?.autoCalculateCGPA ?? true,
+            updatedTargetCGPA: user?.targetCGPA ?? 9.0
+        };
 
     } catch (error) {
         return { success: false, error: "Failed to update marks." };
@@ -77,14 +91,25 @@ export async function deleteSubject(SubId) {
         // Clean up any timetable entries associated with this subject
         await Timetable.deleteMany({ userId, subjectId: SubId });
 
-        await updateSemesterSGPA(SubToDelete.semester, userId);
-        await syncUserCGPAIfAuto(userId);
-        revalidateTag(`analytics-${userId}`);
-        revalidateTag(`vault-${userId}`);
-        revalidateTag(`semester-${userId}`);
-        revalidateTag(`dashboard-${userId}`);
+        const updatedSGPA = await updateSemesterSGPA(SubToDelete.semester, userId);
+        const updatedCGPA = await syncUserCGPAIfAuto(userId);
 
-        return { success: true, message: "Subject deleted successfully" };
+        // Get updated user settings for currentSem
+        const user = await User.findById(userId).select("currentSem currentCGPA autoCalculateCGPA targetCGPA").lean();
+
+        revalidatePath("/dashboard", "layout");
+        revalidatePath("/dashboard/analytics", "page");
+        revalidatePath("/dashboard/simulator", "page");
+
+        return {
+            success: true,
+            message: "Subject deleted successfully",
+            updatedSGPA,
+            updatedCGPA: updatedCGPA ?? user?.currentCGPA ?? 0,
+            updatedCurrentSem: user?.currentSem ?? 1,
+            updatedAutoCalculateCGPA: user?.autoCalculateCGPA ?? true,
+            updatedTargetCGPA: user?.targetCGPA ?? 9.0
+        };
     } catch (err) {
         return { success: false, error: "Failed to delete Subject" };
     }
@@ -127,18 +152,25 @@ export async function addSubject(subjectData){
             });
         }
 
-        await updateSemesterSGPA(subjectData.semester, session.user.id);
-        await syncUserCGPAIfAuto(userId);
+        const updatedSGPA = await updateSemesterSGPA(subjectData.semester, userId);
+        const updatedCGPA = await syncUserCGPAIfAuto(userId);
 
-        revalidateTag(`analytics-${userId}`);
-        revalidateTag(`vault-${userId}`);
-        revalidateTag(`semester-${userId}`);
-        revalidateTag(`dashboard-${userId}`);
+        // Get updated user settings for currentSem
+        const user = await User.findById(userId).select("currentSem currentCGPA autoCalculateCGPA targetCGPA").lean();
+
+        revalidatePath("/dashboard", "layout");
+        revalidatePath("/dashboard/analytics", "page");
+        revalidatePath("/dashboard/simulator", "page");
 
         return {
             success: true,
             message: "Subject added successfully!",
-            id: subToAdd._id.toString()
+            id: subToAdd._id.toString(),
+            updatedSGPA,
+            updatedCGPA: updatedCGPA ?? user?.currentCGPA ?? 0,
+            updatedCurrentSem: user?.currentSem ?? 1,
+            updatedAutoCalculateCGPA: user?.autoCalculateCGPA ?? true,
+            updatedTargetCGPA: user?.targetCGPA ?? 9.0
         };
     } catch (err) {
         return { success: false, error: err.message || "Failed to add subject" };
@@ -169,21 +201,97 @@ export async function addTimetableSlot(slotData) {
     await dbConnect();
 
     try {
-        const startMinutes = parseTimeToMinutes(slotData.startTime);
-        const endMinutes = parseTimeToMinutes(slotData.endTime);
+        let itemsToCreate = [];
 
-        await Timetable.create({
-            userId,
-            subjectId: slotData.subjectId,
-            dayOfWeek: Number(slotData.dayOfWeek),
-            startMinutes,
-            endMinutes,
-            room: slotData.room || 'TBA',
-            teacher: slotData.teacher || 'TBA'
-        });
+        if (Array.isArray(slotData)) {
+            // Direct array of slot objects
+            for (const item of slotData) {
+                const startMinutes = typeof item.startTime === 'number' ? item.startTime : parseTimeToMinutes(item.startTime);
+                const endMinutes = typeof item.endTime === 'number' ? item.endTime : parseTimeToMinutes(item.endTime);
+                itemsToCreate.push({
+                    userId,
+                    subjectId: item.subjectId,
+                    dayOfWeek: Number(item.dayOfWeek),
+                    startMinutes,
+                    endMinutes,
+                    room: item.room || 'TBA',
+                    teacher: item.teacher || 'TBA'
+                });
+            }
+        } else if (slotData.slots && Array.isArray(slotData.slots)) {
+            // { subjectId, slots: [ { days: [1,3], startTime, endTime, room, teacher }, ... ] }
+            for (const grp of slotData.slots) {
+                const days = Array.isArray(grp.days) ? grp.days : (grp.dayOfWeek !== undefined ? [grp.dayOfWeek] : [1]);
+                const startMinutes = typeof grp.startTime === 'number' ? grp.startTime : parseTimeToMinutes(grp.startTime);
+                const endMinutes = typeof grp.endTime === 'number' ? grp.endTime : parseTimeToMinutes(grp.endTime);
+                const room = grp.room || slotData.room || 'TBA';
+                const teacher = grp.teacher || slotData.teacher || 'TBA';
 
-        revalidateTag(`dashboard-${userId}`);
-        return { success: true, message: "Timetable slot added successfully!" };
+                for (const d of days) {
+                    itemsToCreate.push({
+                        userId,
+                        subjectId: grp.subjectId || slotData.subjectId,
+                        dayOfWeek: Number(d),
+                        startMinutes,
+                        endMinutes,
+                        room,
+                        teacher
+                    });
+                }
+            }
+        } else if (Array.isArray(slotData.daysOfWeek) && slotData.daysOfWeek.length > 0) {
+            // { subjectId, daysOfWeek: [1, 3, 5], startTime, endTime, room, teacher }
+            const startMinutes = parseTimeToMinutes(slotData.startTime);
+            const endMinutes = parseTimeToMinutes(slotData.endTime);
+            for (const d of slotData.daysOfWeek) {
+                itemsToCreate.push({
+                    userId,
+                    subjectId: slotData.subjectId,
+                    dayOfWeek: Number(d),
+                    startMinutes,
+                    endMinutes,
+                    room: slotData.room || 'TBA',
+                    teacher: slotData.teacher || 'TBA'
+                });
+            }
+        } else {
+            // Standard single slot { subjectId, dayOfWeek, startTime, endTime, room, teacher }
+            const startMinutes = parseTimeToMinutes(slotData.startTime);
+            const endMinutes = parseTimeToMinutes(slotData.endTime);
+            itemsToCreate.push({
+                userId,
+                subjectId: slotData.subjectId,
+                dayOfWeek: Number(slotData.dayOfWeek),
+                startMinutes,
+                endMinutes,
+                room: slotData.room || 'TBA',
+                teacher: slotData.teacher || 'TBA'
+            });
+        }
+
+        if (itemsToCreate.length === 0) {
+            return { success: false, error: "No class slots to schedule." };
+        }
+
+        for (const item of itemsToCreate) {
+            if (!item.subjectId) throw new Error("Subject is required for each class slot.");
+            if (isNaN(item.dayOfWeek) || item.dayOfWeek < 0 || item.dayOfWeek > 6) {
+                throw new Error("Please select valid days of the week.");
+            }
+            if (item.startMinutes >= item.endMinutes) {
+                throw new Error("End time must be after start time for all slots.");
+            }
+        }
+
+        await Timetable.insertMany(itemsToCreate);
+
+        revalidatePath("/dashboard", "layout");
+        return { 
+            success: true, 
+            message: itemsToCreate.length === 1 
+                ? "Timetable slot added successfully!" 
+                : `${itemsToCreate.length} timetable slots added successfully!` 
+        };
     } catch (err) {
         return { success: false, error: err.message || "Failed to add timetable slot" };
     }
@@ -199,7 +307,7 @@ export async function deleteTimetableSlot(slotId) {
 
     try {
         await Timetable.deleteOne({ _id: slotId, userId });
-        revalidateTag(`dashboard-${userId}`);
+        revalidatePath("/dashboard", "layout");
         return { success: true, message: "Timetable slot deleted successfully!" };
     } catch (err) {
         return { success: false, error: err.message || "Failed to delete slot" };

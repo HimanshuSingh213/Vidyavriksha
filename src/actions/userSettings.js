@@ -3,7 +3,7 @@
 import { auth } from "@/auth";
 import dbConnect from "@/lib/db";
 import { User } from "@/models/user.model";
-import { revalidatePath, revalidateTag } from "next/cache";
+import { revalidatePath } from "next/cache";
 import { calculateUserCGPA } from "./semester";
 
 export async function getUserSettings() {
@@ -65,16 +65,17 @@ export async function updateUserSettings(data) {
             throw new Error("User not found in the database.");
         }
 
-        revalidateTag(`settings-${userId}`);
-        revalidateTag(`vault-${userId}`);
-        revalidateTag(`dashboard-${userId}`);
-
         revalidatePath("/dashboard", "layout");
+        revalidatePath("/dashboard/analytics", "page");
+        revalidatePath("/dashboard/simulator", "page");
 
         return {
             success: true,
             message: "Settings updated successfully",
-            updatedCGPA: updateFields.currentCGPA !== undefined ? updateFields.currentCGPA : updatedUser.currentCGPA
+            updatedCGPA: updatedUser.currentCGPA ?? 0,
+            updatedCurrentSem: updatedUser.currentSem ?? 1,
+            updatedAutoCalculateCGPA: updatedUser.autoCalculateCGPA ?? true,
+            updatedTargetCGPA: updatedUser.targetCGPA ?? 9.0
         };
     } catch (err) {
         console.error("Error updating user settings:", err);

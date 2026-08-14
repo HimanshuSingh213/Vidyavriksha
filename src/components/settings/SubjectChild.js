@@ -1,10 +1,12 @@
 import updateSubjectMarks, { deleteSubject } from '@/actions/subject';
 import { ChevronDown } from 'lucide-react'
 import React, { useState } from 'react'
+import { useUser } from '@/app/Context/UserContext';
 
 function SubjectChild({ subject, setModalConfig, setToastConfig, refreshData }) {
 
     const [isOpen, setIsOpen] = useState(false)
+    const { updateCGPA, updateSemester, updateAutoCalculateCGPA, updateTargetCGPA } = useUser();
 
     const [minor1, setMinor1] = useState(subject.marks.minor1);
     const [minor2, setMinor2] = useState(subject.marks.minor2);
@@ -33,6 +35,12 @@ function SubjectChild({ subject, setModalConfig, setToastConfig, refreshData }) 
             const response = await updateSubjectMarks(subject.id, marks);
 
             if (response && response.success) {
+                // Sync context with updated values from server
+                if (response.updatedCGPA !== undefined) updateCGPA(response.updatedCGPA);
+                if (response.updatedCurrentSem !== undefined) updateSemester(response.updatedCurrentSem);
+                if (response.updatedAutoCalculateCGPA !== undefined) updateAutoCalculateCGPA(response.updatedAutoCalculateCGPA);
+                if (response.updatedTargetCGPA !== undefined) updateTargetCGPA(response.updatedTargetCGPA);
+
                 setToastConfig({
                     isOpen: true,
                     title: "Success",
@@ -75,10 +83,16 @@ function SubjectChild({ subject, setModalConfig, setToastConfig, refreshData }) 
                 try {
                     setIsDeleting(true);
                     setModalConfig(prev => ({ ...prev, confirmDisabled: true }));
-                    
+
                     const response = await deleteSubject(subject.id);
 
                     if (response && response.success) {
+                        // Sync context with updated values from server
+                        if (response.updatedCGPA !== undefined) updateCGPA(response.updatedCGPA);
+                        if (response.updatedCurrentSem !== undefined) updateSemester(response.updatedCurrentSem);
+                        if (response.updatedAutoCalculateCGPA !== undefined) updateAutoCalculateCGPA(response.updatedAutoCalculateCGPA);
+                        if (response.updatedTargetCGPA !== undefined) updateTargetCGPA(response.updatedTargetCGPA);
+
                         setModalConfig(prev => ({...prev, isOpen: false}));
                         setToastConfig({
                             isOpen: true,
@@ -86,7 +100,7 @@ function SubjectChild({ subject, setModalConfig, setToastConfig, refreshData }) 
                             description: "Subject deleted successfully!",
                             type: "success"
                         });
-                        
+
                         if (refreshData) refreshData();
                     } else {
                         setModalConfig(prev => ({...prev, isOpen: false}));
